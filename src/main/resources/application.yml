@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: gitCode
+  datasource:
+    url: jdbc:h2:file:./data/embedded;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      settings:
+        web-allow-others: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+local:
+  file:
+    dir: C:/Users/solosw/Desktop/CodeLab/area/test/
+    path: /data
+
