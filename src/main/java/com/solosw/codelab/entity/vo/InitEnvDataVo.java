@@ -10,5 +10,6 @@ import lombok.experimental.Accessors;
 public class InitEnvDataVo {
 
     String name,password,email;
+    Integer role;
 
 }

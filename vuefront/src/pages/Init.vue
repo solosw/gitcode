@@ -4,6 +4,7 @@ import axios from "axios";
 export default {
   data() {
     return {
+      load:false,
       formLabelAlign: {
         name: '',
         password: '',
@@ -19,6 +20,31 @@ export default {
   props: {},
 
   methods: {
+    addUser(){
+      if(this.formLabelAlign.password!=this.formLabelAlign.repeatPassword){
+        alert("两次密码不同")
+        return;
+      }
+      var data={
+        name:this.formLabelAlign.name,
+        email:this.formLabelAlign.email,
+        password: this.formLabelAlign.password,
+        role:0
+      }
+      this.load=true;
+      axios.post("/addUser",data).then((res)=>{
+        if(res.data.status==200){
+          this.load=false
+          window.location.href="/index";
+        }else {
+          alert(res.data.message)
+          this.load=false
+        }
+      })
+    },
+
+
+
     initEnv(){
       if(this.formLabelAlign.password!=this.formLabelAlign.repeatPassword){
         alert("两次密码不同")
@@ -27,14 +53,19 @@ export default {
       var data={
         name:this.formLabelAlign.name,
         email:this.formLabelAlign.email,
-        password: this.formLabelAlign.password
+        password: this.formLabelAlign.password,
+        role:0
       }
-
+      this.load=true;
       axios.post("/initEnv",data).then((res)=>{
         if(res.data.status==200){
           alert("初始化成功");
+          this.load=false
           window.location.href="/index";
-        }else alert(res.data.message)
+        }else {
+          alert(res.data.message)
+          this.load=false
+        }
       })
     },
     checkEnv(){
@@ -54,8 +85,8 @@ export default {
 </script>
 
 <template>
-  <div class="form-container">
-    <el-form ref="form" :label-position="'top'" label-width="120px" :model="formLabelAlign" style="width: 100%; max-width: 600px; margin: auto;">
+  <div class="form-container" >
+    <el-form ref="form" :label-position="'top'" label-width="120px" :model="formLabelAlign" style="width: 100%; max-width: 600px; margin: auto;" v-loading="load">
       <el-form-item>
         <el-steps  finish-status="success" simple style="margin-bottom: 20px;">
           <el-step title="SSH环境配置" :status="statuses[0]"></el-step>
@@ -77,7 +108,8 @@ export default {
         <el-input v-model="formLabelAlign.email"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" style="display: block; margin: 0 auto;" @click="initEnv">初始化</el-button>
+        <el-button type="primary" style="display: block; margin: 0 auto;" @click="initEnv"  :disabled="load">初始化</el-button>
+        <el-button type="primary" style="display: block; margin: 0 auto;" @click="addUser"  :disabled="load">直接添加管理员</el-button>
       </el-form-item>
     </el-form>
   </div>
