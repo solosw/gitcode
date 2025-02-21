@@ -4,23 +4,28 @@
       <el-form-item label="Repository Name" prop="name" :rules="[{ required: true, message: 'Please input repository name', trigger: 'blur' }]">
         <el-input v-model="form.name"></el-input>
       </el-form-item>
-      <el-form-item label="Path (optional)">
-        <el-input v-model="form.path"></el-input>
-      </el-form-item>
       <el-form-item label="Belongs to" prop="belongsTo" :rules="[{ required: true, message: 'Please select a belonging', trigger: 'change' }]">
         <el-select v-model="form.belongsTo" placeholder="Select">
-          <el-option label="Personal Account" value="personal"></el-option>
-          <el-option label="Organization" value="organization"></el-option>
+          <el-option :label="user.name" :value="-1"></el-option>
+          <el-option v-for="(item,index) in userIdentity" :label="item.name" :value="index"></el-option>
         </el-select>
       </el-form-item>
+      <el-form-item label="Path" :rules="[{ required: true, message: 'Please input Path', trigger: 'blur' }]">
+        <el-input v-model="form.path">
+          <template #prefix>
+              {{getPrefixPath()}}
+          </template>
+        </el-input>
+      </el-form-item>
+
       <el-form-item label="Description (optional)">
         <el-input type="textarea" v-model="form.description"></el-input>
       </el-form-item>
 
       <el-form-item label="Visibility">
         <el-radio-group v-model="form.visibility">
-          <el-radio-button label="public">Public</el-radio-button>
-          <el-radio-button label="private">Private</el-radio-button>
+          <el-radio-button label="0" >Public</el-radio-button>
+          <el-radio-button label="1" >Private</el-radio-button>
         </el-radio-group>
       </el-form-item>
       <el-form-item>
@@ -31,38 +36,75 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+
+
+import axios from "axios";
+import {ElMessage} from "element-plus";
 
 export default {
   name: 'RepoCreate',
-  setup() {
-    const form = ref({
-      name: '',
-      path: '',
-      belongsTo: '',
-      description: '',
-      readme: false,
-      visibility: 'public'
-    });
+  data() {
+    return {
+      user:JSON.parse(localStorage.getItem("user")).user,
+      form: {
+        name: '',
+        path: '',
+        belongsTo: -1,
+        description: '',
+        readme: false,
+        visibility: '0'
+      },
+      userIdentity:[
 
-    const repoForm = ref(null);
 
-    const onSubmit = () => {
-      repoForm.value.validate((valid) => {
+      ]
+    };
+  },
+  created() {
+    axios.post("/user/getIdentityList/"+this.user.id).then((res)=>{
+      if(res.data.status==200){
+        this.userIdentity=res.data.data
+      }else {
+        ElMessage(res.data.message)
+      }
+    })
+
+  },
+  methods: {
+
+    getPrefixPath(){
+      if(this.form.belongsTo==-1) return this.user.name+"/"
+      return this.userIdentity[this.form.belongsTo].name+"/"+this.user.name+"/"
+    },
+
+    onSubmit() {
+      this.$refs.repoForm.validate((valid) => {
         if (valid) {
-          alert('submit!');
+
+         var data={
+           name:this.form.name,
+           path: this.getPrefixPath()+this.form.path,
+           creatorId:this.user.id,
+           kind:this.form.visibility,
+           type:this.form.belongsTo==-1?0:1,
+           origizationId:this.form.belongsTo==-1?null:this.userIdentity[this.form.belongsTo].id,
+           description: this.form.description
+         }
+        axios.post("/house/create",data).then((res)=>{
+          if(res.data.status==200){
+              alert("创建成功")
+              location.href="/index"
+          }else {
+            ElMessage(res.data.message)
+          }
+        })
+
         } else {
-          console.log('error submit!!');
+          ElMessage('请检查填写类容');
           return false;
         }
       });
-    };
-
-    return {
-      form,
-      repoForm,
-      onSubmit
-    };
+    }
   }
 };
 </script>

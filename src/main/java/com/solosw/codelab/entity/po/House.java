@@ -35,11 +35,14 @@ public class House {
     @Column(name = "update_time", nullable = false)
     private LocalDateTime updateTime;
     // 使用 @PrePersist 注解的方法，在插入之前自动设置 createTime 和 updateTime
+    @Column(name = "description", nullable = true)
+    String description;
 
     @Column(name = "kind", nullable = false)
     private Integer kind;//0 public
 
-
+    @Column(name = "type", nullable = false)
+    private Integer type;//0 用户 1 组织
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();

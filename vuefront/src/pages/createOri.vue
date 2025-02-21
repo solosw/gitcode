@@ -17,29 +17,40 @@
 <script>
 import { ref } from 'vue';
 import axios from 'axios';
-
+import {ElMessage} from "element-plus";
 export default {
-  name: 'CreateOrganization',
-  setup() {
-    const form = ref({
-      name: '',
-      description:'',
-    });
-
-    const organizationForm = ref(null);
-
-    const onSubmit = () => {
-
-
-    };
-
+  data() {
     return {
-      form,
-      organizationForm,
-      onSubmit
-    };
+      form:{
+        name: '',
+        description:'',
+        userId:JSON.parse(localStorage.getItem("user")).user.id
+      }
+    }
+  },
+
+  props: {},
+
+  methods: {
+    onSubmit(){
+
+
+        axios.post("/user/createOrganization",this.form).then((res)=>{
+          if(res.data.status==200){
+            location.href="/index"
+          }else {
+            ElMessage(res.data.message)
+          }
+        })
+
+    },
+
+  },
+  created() {
+
   }
-};
+}
+
 </script>
 
 <style scoped>

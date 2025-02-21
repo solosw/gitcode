@@ -30,6 +30,33 @@ const routes = [
             {
                 path: '/createOri', // 子路由
                 component: () => import('@/pages/createOri.vue')
+            },
+
+            {
+                path: '/slider', // 子路由
+                component: () => import('@/pages/Slider.vue'),
+                children:[
+                    {
+                        path: "/account",
+                        component: () => import('@/pages/account.vue')
+                    },
+                    {
+                        path: "/info",
+                        component: () => import('@/pages/info.vue')
+                    },
+                    {
+                        path: "/myOri",
+                        component: () => import('@/pages/MyOri.vue')
+                    },
+                    {
+                        path: "/myRep",
+                        component: () => import('@/pages/myRep.vue')
+                    },
+                    {
+                        path: "/ssh",
+                        component: () => import('@/pages/ssh.vue')
+                    }
+                ]
             }
         ]
     }

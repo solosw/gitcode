@@ -27,14 +27,15 @@ public class Origization {
 
     @Column(name = "creator_id", nullable = false)
     private Long creatorId;
-
+    @Column(name = "description", nullable = true)
+    private String description;
     @Column(name = "create_time", nullable = false, updatable = false)
     private LocalDateTime createTime;
 
     @Column(name = "update_time", nullable = false)
     private LocalDateTime updateTime;
     // 使用 @PrePersist 注解的方法，在插入之前自动设置 createTime 和 updateTime
-    @Column(name = "member_ids", nullable = false)
+    @Column(name = "member_ids", nullable = true)
     @Convert(converter = LongListConverter.class)
     private List<Long> memberIds;
     @PrePersist

@@ -41,7 +41,7 @@ export default {
       </el-input>
     </div>
     <div class="head-img-four">
-      <a href="self-Overview.html">
+      <a href="/info">
         <img class="head-img-four-touxiang" src="/images/36727057.jpg">
 
       </a>
@@ -58,9 +58,9 @@ export default {
           <el-dropdown-menu>
             <el-dropdown-item command="/createOri">创建组织</el-dropdown-item>
             <el-dropdown-item command="/new">创建仓库</el-dropdown-item>
-            <el-dropdown-item command="c">我的组织</el-dropdown-item>
-            <el-dropdown-item command="d">我的仓库</el-dropdown-item>
-            <el-dropdown-item command="e">个人设置</el-dropdown-item>
+            <el-dropdown-item command="/myOri">我的组织</el-dropdown-item>
+            <el-dropdown-item command="/myRep">我的仓库</el-dropdown-item>
+            <el-dropdown-item command="/account">个人设置</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

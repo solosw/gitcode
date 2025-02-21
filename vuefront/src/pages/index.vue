@@ -1,20 +1,19 @@
 <script>
 import {ElMessage} from "element-plus";
+import axios from "axios";
 
 export default {
   data() {
     return {
+      user:JSON.parse(localStorage.getItem("user")).user,
       searchContent:"",
-      currentUser:{
-        name:"solosw"
-      },
+      userType:-1,
       userIdentity:[
-        {
-          name:"admin"
-        },{
 
-          name:"wiki"
-        }
+
+      ],
+      count:5,
+      myRepositys:[
 
       ]
 
@@ -25,16 +24,58 @@ export default {
   props: {},
 
   methods: {
+    load(){
+      if(this.count>this.myRepositys.length) return
+      this.count++;
+    },
     createResposity(){
-
+        location.href="/new"
     },
     handleCommand(command){
       ElMessage(`click on item ${command}`)
+    },
+    handleChange(value){
+      axios.post("/house/list",{
+        type:this.userType==-1?0:1,
+        creatorId:this.user.id,
+        origizationId:this.userType==-1?null:this.userIdentity[this.userType].id
+      }).then((res)=>{
+        if(res.data.status==200){
+          this.myRepositys=res.data.data
+          console.log(this.myRepositys)
+        }else {
+          ElMessage(res.data.message)
+        }
+      })
+
     }
+
   },
   created() {
+      axios.post("/user/getIdentityList/"+this.user.id).then((res)=>{
+        if(res.data.status==200){
+          this.userIdentity=res.data.data
+        }else {
+          ElMessage(res.data.message)
+        }
+      })
 
+
+
+    axios.post("/house/list",{
+        type:this.userType==-1?0:1,
+        creatorId:this.user.id,
+        origizationId:this.userType==-1?null:this.userIdentity[this.userType].id
+    }).then((res)=>{
+      if(res.data.status==200){
+        this.myRepositys=res.data.data
+      }else {
+        ElMessage(res.data.message)
+      }
+    })
   }
+
+
 }
 </script>
 
@@ -52,8 +93,9 @@ export default {
         <img src="/images/36727057.jpg" class="tx-left">
       </div>
       <div class="name-left">
-        <el-select name="name" style="width: 100px" class="name-select" v-model="currentUser.name" size="small">
-          <el-option v-for="item in userIdentity" :value="item.name">{{item.name}}</el-option>
+        <el-select name="name" style="width: 100px" class="name-select" v-model="userType" size="small" @change="handleChange">
+          <el-option :label="user.name" :value="-1"></el-option>
+          <el-option v-for="(item,index) in userIdentity" :value="index" :label="item.name"></el-option>
 
         </el-select>
       </div>
@@ -73,7 +115,11 @@ export default {
         <input type="text" placeholder="寻找仓库" name="" value="" size="20" class="rep-find-input">
       </div>
       <div class="my-rep">
-        <a href="project_code.html">我的仓库</a>
+        <ul class="infinite-list" style="list-style-type:none">
+          <li  v-for="(item,index) in  myRepositys.slice(0, 10)"  class="infinite-list-item" style="color: black">
+            <el-link  :href="'/project?id='+item.id">{{item.name}}</el-link>
+          </li>
+        </ul>
       </div>
       <hr class="hhr">
     </div>
@@ -218,7 +264,7 @@ body{
   width: 100%;
 }
 .my-rep{
-  margin: 16px 0;
+  margin-top: -10px;
   margin-left: 5%;
   width: 100%;
   float: left;
