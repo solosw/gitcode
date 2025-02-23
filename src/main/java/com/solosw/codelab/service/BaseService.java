@@ -42,4 +42,8 @@ public class BaseService<M extends BaseMapper,R extends JpaRepository,data> {
     public void deleteById(Long id){
         repository.deleteById(id);
     }
+
+    public void updateById(data entity){
+        repository.save(entity);
+    }
 }

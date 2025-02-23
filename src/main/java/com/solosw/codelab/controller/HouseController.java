@@ -35,7 +35,6 @@ public class HouseController {
             task.setRepo(house.getPath());
             if(house.getKind()==0){
                 userRule.setUserName(publicHouse);
-
             }
             else {
                 userRule.setUserName(userName);

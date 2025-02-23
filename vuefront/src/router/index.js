@@ -67,4 +67,22 @@ const router = createRouter({
     routes
 });
 
+const  whiteList = ['/login', '/init',"/index","/"];
+router.beforeEach((to, from, next) => {
+    const  user= localStorage.getItem("user");
+    var isLogin=false
+    if(JSON.parse(user)) isLogin=true
+    if (whiteList.includes(to.path)) {
+        // 如果目标路由在白名单内，直接放行
+        next();
+    } else {
+        // 如果不在白名单内但已登录，继续导航
+        if (isLogin) {
+            next();
+        } else {
+            // 否则重定向到登录页面
+            next('/login');
+        }
+    }
+});
 export default router;

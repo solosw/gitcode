@@ -5,15 +5,13 @@
       <el-table-column prop="name" label="名称" width="200"></el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="200"></el-table-column>
       <el-table-column prop="description" label="描述"></el-table-column>
-      <el-table-column label="操作">
-        <template #default>
-          <el-button>退出</el-button>
-        </template>
-      </el-table-column>
 
       <el-table-column label="操作">
-        <template #default>
-          <el-button>添加成员</el-button>
+        <template #default="{ row }">
+          <!-- 退出按钮始终显示 -->
+          <el-button>退出</el-button>
+          <!-- 添加成员按钮按条件显示 -->
+          <el-button v-if="row.creatorId==user.id">添加成员</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -21,16 +19,24 @@
     <el-dialog title="成员信息" v-model="dialogVisible" width="50%">
       <el-table :data="selectedOrganization.members" style="width: 100%">
         <el-table-column prop="name" label="成员名称" width="200"></el-table-column>
-        <el-table-column prop="role" label="角色"></el-table-column>
+        <el-table-column  label="角色">
+          <template #default="{ row }" >
+            <span>{{selectedOrganization.creatorId ==row. id ? '管理员' : '成员' }}</span>
+          </template>
+        </el-table-column>
+
       </el-table>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   data() {
     return {
+      user:JSON.parse(localStorage.getItem("user")).user,
       organizations: [
         {
           name: '组织1',
@@ -59,7 +65,21 @@ export default {
     handleRowClick(row) {
       this.selectedOrganization = row;
       this.dialogVisible = true;
+    },
+
+    addOrzUser(){
+
     }
+  },
+  created() {
+
+    axios.post("/ori/getMyOrifization/"+this.user.id).then((res)=>{
+      if(res.data.status==200){
+        this.organizations=res.data.data
+        console.log(this.organizations)
+      }
+    })
+
   }
 };
 </script>

@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface OrigizationMapper extends BaseMapper<Origization> {
 
-    @Select("select id,name,description from origization where creator_id=#{userId} or CONCAT(',', member_ids, ',') LIKE CONCAT('%,', CAST(#{userId} AS VARCHAR), ',%') ")
+    @Select("select id,name,description,create_time,update_time,creator_id from origization where creator_id=#{userId} or CONCAT('%', CAST(#{userId} AS VARCHAR), '%') LIKE  member_ids")
     List<Origization> getOrigizationListByUserId(Long userId);
 
 }

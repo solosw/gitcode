@@ -2,10 +2,13 @@ package com.solosw.codelab.controller;
 
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.Origization;
+import com.solosw.codelab.entity.po.UserInfo;
 import com.solosw.codelab.entity.po.Users;
 import com.solosw.codelab.service.OrigizationService;
+import com.solosw.codelab.service.UserInfoService;
 import com.solosw.codelab.service.UsersService;
 import lombok.extern.slf4j.Slf4j;
+import org.h2.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +26,8 @@ public class UserController {
     @Autowired
     OrigizationService origizationService;
 
+    @Autowired
+    UserInfoService userInfoService;
     @PostMapping("/login")
     public ResponseBo login(@RequestBody Map<String,String> userInfos){
         String infos=userInfos.get("username");
@@ -60,5 +65,36 @@ public class UserController {
             return ResponseBo.getFail(null,"组织查询失败",500);
         }
 
+    }
+
+    @PostMapping("/changeInfo")
+    public ResponseBo changeInfo(@RequestBody Map<String,String> info){
+        Long id= Long.valueOf(info.get("id"));
+        String email=info.get("email");
+        String password=info.get("password");
+        if (StringUtils.isNullOrEmpty(email)||StringUtils.isNullOrEmpty(password))
+            return ResponseBo.getFail(null,"缺少必填项",500);
+        Users user=usersService.selectById(id);
+        if(user==null) return ResponseBo.getFail(null,"用户不存在",500);
+        user.setEmail(email);
+        user.setPassword(password);
+        usersService.updateById(user);
+        return ResponseBo.getSuccess(user);
+    }
+
+    @PostMapping("/changeRealInfo")
+    public ResponseBo changeRealInfo(@RequestBody UserInfo info){
+        UserInfo currentInf0=userInfoService.getUserInfoByUserIdOrId(info.getUserId(),0);
+        if(currentInf0==null){
+            userInfoService.insert(info);
+        }else {
+            userInfoService.updateById(info.setId(currentInf0.getId()));
+        }
+        return ResponseBo.getSuccess(null);
+    }
+    @PostMapping("/getRealInfo/{userId}")
+    public ResponseBo getRealInfo(@PathVariable Long userId){
+        UserInfo currentInf0=userInfoService.getUserInfoByUserIdOrId(userId,0);
+        return ResponseBo.getSuccess(currentInf0==null?new UserInfo():currentInf0);
     }
 }

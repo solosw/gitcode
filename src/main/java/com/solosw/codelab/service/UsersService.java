@@ -9,6 +9,8 @@ import com.solosw.codelab.repositorys.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UsersService extends BaseService<UsersMapper, UsersRepository, Users>{
 
@@ -16,5 +18,8 @@ public class UsersService extends BaseService<UsersMapper, UsersRepository, User
 
     public Users getUsersByNameOrEmailAndPassword(String info,String password){
         return mapper.getUsersByNameOrEmailAndPassword(info,password);
+    }
+    public List<Users> getUserByOrz(Long OrzId){
+        return mapper.getUserByOrz(OrzId);
     }
 }
