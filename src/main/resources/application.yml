@@ -19,6 +19,6 @@ spring:
       matching-strategy: ant_path_matcher
 local:
   file:
-    dir: C:/Users/solosw/Desktop/CodeLab/area/test/
+    dir: /Users/solosw/Desktop/CodeLab/area/test/
     path: /data
 

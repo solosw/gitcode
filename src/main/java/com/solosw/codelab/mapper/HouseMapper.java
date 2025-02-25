@@ -29,5 +29,7 @@ public interface HouseMapper extends BaseMapper<House> {
     })
     List<House> list(Integer type, Long creatorId, Long originzationId);
 
-
+    @Select("select * from house where creator_id=#{creatorId} or origization_id in  " +
+            "(select id from origization where creator_id=#{creatorId} or CAST(member_ids AS VARCHAR) like CONCAT('%', CAST(#{creatorId} AS VARCHAR), '%') )")
+    List<House> ownList(Long creatorId);
 }

@@ -97,4 +97,30 @@ public class UserController {
         UserInfo currentInf0=userInfoService.getUserInfoByUserIdOrId(userId,0);
         return ResponseBo.getSuccess(currentInf0==null?new UserInfo():currentInf0);
     }
+
+    @PostMapping("/add")
+    public ResponseBo getRealInfo(@RequestBody Users users){
+        try {
+            users.setEmail(users.getName()+"@default.com");
+            usersService.insert(users);
+        }catch (Exception e){
+            return ResponseBo.getFail(null,"用户已存在",500);
+        }
+
+        return ResponseBo.getSuccess(null);
+    }
+
+
+    @PostMapping("/all")
+    public ResponseBo getAll(){
+
+        return ResponseBo.getSuccess(usersService.getAll());
+    }
+
+    @PostMapping("/delete")
+    public ResponseBo delete(@RequestBody Users users){
+        usersService.deleteById(users.getId());
+        //ToDO 删除仓库记录，删除组织用户
+        return ResponseBo.getSuccess(null);
+    }
 }

@@ -53,25 +53,42 @@ public class GitoliteTask {
     @NoArgsConstructor
     public static class Task{
 
-       TaskType taskType;
+        TaskType taskType;
         GitoliteUtil.UserRule userRule;
         List<GitoliteUtil.UserRule> userRuleList;
         String repo;
+
     }
     private final BlockingQueue<Task> queue = new LinkedBlockingQueue<>();
 
      void startProcessing() {
         Thread processorThread = new Thread(() -> {
             while (true) {
+
+
+                Task data = null;
                 try {
-                    // take() 方法会阻塞，直到有可用元素
-                    Task data = queue.take();
+                    data = queue.take();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                try {
                     processData(data);
                 } catch (Exception e) {
-                    Thread.currentThread().interrupt();
-                    System.out.println("Processing thread interrupted");
-                    break;
+                    throw new RuntimeException(e);
                 }
+                System.out.println("task::"+queue.size());
+                    if(queue.isEmpty()){
+
+
+                        try {
+                            GitoliteUtil.commitAndPushChanges();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+
             }
         });
         processorThread.start();
@@ -119,7 +136,7 @@ public class GitoliteTask {
             default:
                 System.out.println("Unknown task type: ");
         }
-       // GitoliteUtil.commitAndPushChanges();
+
     }
 
      void  createRep(Task task) throws Exception {
@@ -127,6 +144,7 @@ public class GitoliteTask {
 
      }
     void  deleteRep(Task task) throws Exception {
+
            GitoliteUtil.deleteRepository(task.getRepo());
 
     }

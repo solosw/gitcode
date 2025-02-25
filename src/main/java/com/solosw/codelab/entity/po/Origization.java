@@ -37,7 +37,7 @@ public class Origization {
     // 使用 @PrePersist 注解的方法，在插入之前自动设置 createTime 和 updateTime
     @Column(name = "member_ids", nullable = true)
     @Convert(converter = LongListConverter.class)
-    private List<Long> memberIds;
+    public List<Long> memberIds;
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();

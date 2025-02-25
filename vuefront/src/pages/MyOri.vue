@@ -9,9 +9,9 @@
       <el-table-column label="操作">
         <template #default="{ row }">
           <!-- 退出按钮始终显示 -->
-          <el-button>退出</el-button>
+          <el-button @click="exit(row.id)">退出</el-button>
           <!-- 添加成员按钮按条件显示 -->
-          <el-button v-if="row.creatorId==user.id">添加成员</el-button>
+          <el-button v-if="row.creatorId==user.id" @click='addOrzUser(row)'>添加成员</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -27,15 +27,24 @@
 
       </el-table>
     </el-dialog>
+
+    <el-dialog title="添加成员" v-model="dialogVisible1" width="50%">
+        <el-input placeholder="用户名" v-model="addName"></el-input>
+        <el-button @click="add">确定</el-button>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
 import axios from "axios";
+import {ElMessage} from "element-plus";
 
 export default {
   data() {
     return {
+      addName:'',
+      dialogVisible1:false,
       user:JSON.parse(localStorage.getItem("user")).user,
       organizations: [
         {
@@ -58,17 +67,39 @@ export default {
         }
       ],
       dialogVisible: false,
-      selectedOrganization: {}
+      selectedOrganization: {},
+      row:null,
     };
   },
   methods: {
+    add(){
+        axios.post("/ori/addUser/"+this.addName+"/"+this.row.id).then((res)=>{
+          if(res.data.status==200){
+
+            location.reload()
+            ElMessage("Success")
+          }else {
+            ElMessage(res.data.message)
+          }
+        })
+    },
     handleRowClick(row) {
       this.selectedOrganization = row;
       this.dialogVisible = true;
     },
 
-    addOrzUser(){
-
+    addOrzUser(row){
+      this.row=row
+      this.dialogVisible1=true
+    },
+    exit(orzId){
+      axios.post("/ori/exit/"+this.user.id+"/"+orzId).then((res)=>{
+        if(res.data.status==200){
+          ElMessage("Success")
+        }else {
+          ElMessage(res.data.message)
+        }
+      })
     }
   },
   created() {

@@ -22,9 +22,11 @@ export default {
 
 <template>
   <div class="head">
-    <div class="head-img-first">
+    <div class="head-img-first" @click="handleCommand('/index')">
       <img class="head-img-first-github" src="/images/github-white.png">
+
     </div>
+
     <div class="search">
 
     </div>
@@ -61,6 +63,7 @@ export default {
             <el-dropdown-item command="/myOri">我的组织</el-dropdown-item>
             <el-dropdown-item command="/myRep">我的仓库</el-dropdown-item>
             <el-dropdown-item command="/account">个人设置</el-dropdown-item>
+            <el-dropdown-item command="/login">登出</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

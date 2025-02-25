@@ -21,6 +21,9 @@
       <el-menu-item index="4">
         <span slot="title">公钥设置</span>
       </el-menu-item>
+      <el-menu-item index="5" :disabled="this.user.role==1">
+        <span slot="title" v-if="this.user.role==0">用户管理</span>
+      </el-menu-item>
     </el-menu>
     <div style="margin-left: 10%;width: 60%">
       <router-view></router-view>
@@ -35,8 +38,9 @@ export default {
   emits: ['select-menu'],
   data() {
     return {
+      user:JSON.parse(localStorage.getItem("user")).user,
         value:0,
-        paths:["/account","/info","/myOri","/myRep","/ssh"]
+        paths:["/account","/info","/myOri","/myRep","/ssh","/user"]
     }
   },
   methods: {

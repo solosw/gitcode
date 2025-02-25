@@ -1,8 +1,14 @@
 package  com.solosw.codelab.utils;
 
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.transport.*;
 import org.h2.util.StringUtils;
 
 import java.io.BufferedReader;
@@ -21,7 +27,9 @@ import java.util.Map;
 
 public class GitoliteUtil {
  public  static  String workingDirectory = "C:/Users/solosw/Desktop/CodeLab";
- public static   String gitoliteAdminRepoUrl = "mike@45.207.211.56:gitolite-admin";
+ public static   String gitoliteAdminRepoUrl = "siki@45.207.211.56:gitolite-admin";
+
+ public static String privateKey=workingDirectory+"/.ssh/id_rsa";
     public static void main(String[] args) {
 
 
@@ -412,29 +420,49 @@ public class GitoliteUtil {
     }
 
 
-    public static synchronized  void commitAndPushChanges() throws IOException, InterruptedException {
-        // Add all changes
-        Process addProcess = new ProcessBuilder("git", "-C", workingDirectory + "/gitolite-admin", "add", ".")
-                .start();
-        int exitCode = addProcess.waitFor();
-        System.out.println("Add process exited with code " + exitCode);
+    public static synchronized  void commitAndPushChanges() throws Exception {
+        File repoDir = new File(workingDirectory+"/gitolite-admin");
 
-        // Commit changes
-        Process commitProcess = new ProcessBuilder("git", "-C", workingDirectory + "/gitolite-admin", "commit", "-m", "Update Gitolite configuration")
-                .start();
-        exitCode = commitProcess.waitFor();
-        System.out.println("Commit process exited with code " + exitCode);
+            Git git = Git.open(repoDir);
+            // Add all changes
+            git.add().addFilepattern(".").call();
+            System.out.println("All changes added.");
 
-        // Push changes
-        Process pushProcess = new ProcessBuilder("git", "-C", workingDirectory + "/gitolite-admin", "push")
-                .start();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(pushProcess.getInputStream()));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            System.out.println(line);
-        }
-        exitCode = pushProcess.waitFor();
-        System.out.println("Push process exited with code " + exitCode);
+            // Commit changes
+            git.commit().setMessage("Update Gitolite configuration").call();
+            System.out.println("Changes committed.");
+
+        SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+            @Override
+            protected void configure(OpenSshConfig.Host host, Session session) {
+                // 设置 StrictHostKeyChecking 为 no（可选，避免首次连接时的确认提示）
+                session.setConfig("StrictHostKeyChecking", "no");
+            }
+
+            @Override
+            protected JSch createDefaultJSch(org.eclipse.jgit.util.FS fs) throws JSchException {
+                JSch jsch = super.createDefaultJSch(fs);
+                // 添加私钥路径
+                jsch.addIdentity(privateKey); // 替换为你的私钥路径
+                return jsch;
+            }
+        };
+        Git local = Git.open(new java.io.File(repoDir+"/.git"));
+        // 3. 设置全局 SSH 会话工厂
+        SshSessionFactory.setInstance(sshSessionFactory);
+
+        // 4. 创建 PushCommand 并设置 SSH 传输配置
+        PushCommand pushCommand = local.push();
+        pushCommand.setTransportConfigCallback(transport -> {
+            if (transport instanceof SshTransport) {
+                ((SshTransport) transport).setSshSessionFactory(sshSessionFactory);
+            }
+        });
+
+        // 5. 执行推送
+        Iterable iterable = pushCommand.call();
+        System.out.println("Changes pushed.");
+
     }
 
      static void updateConfForUsers(String repoName, List<UserRule> users) throws IOException {

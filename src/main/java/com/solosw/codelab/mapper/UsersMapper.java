@@ -14,6 +14,6 @@ public interface UsersMapper extends BaseMapper<Users> {
     Users getUsersByNameOrEmailAndPassword(String info,String password);
 
     @Select("select * from users as u ,(select creator_id, member_ids from origization where id=#{OrzId}) as orz " +
-            " where u.id=orz.creator_id or CONCAT('%', CAST(u.id AS VARCHAR), '%') like orz.member_ids")
+            " where u.id=orz.creator_id or   CAST(orz.member_ids AS VARCHAR) like CONCAT('%', CAST(u.id AS VARCHAR), '%') ")
     List<Users> getUserByOrz(Long OrzId);
 }

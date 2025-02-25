@@ -55,6 +55,10 @@ const routes = [
                     {
                         path: "/ssh",
                         component: () => import('@/pages/ssh.vue')
+                    },
+                    {
+                        path: "/user",
+                        component: () => import('@/pages/users.vue')
                     }
                 ]
             }

@@ -63,9 +63,13 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>6.5.0.202303070854-r</version> <!-- 确保使用最新版本 -->
+            <version>4.11.0.201803080745-r</version> <!-- 确保使用最新版本 -->
         </dependency>
-
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.55</version>
+        </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

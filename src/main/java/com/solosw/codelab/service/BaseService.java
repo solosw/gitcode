@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 
 public class BaseService<M extends BaseMapper,R extends JpaRepository,data> {
@@ -35,7 +36,9 @@ public class BaseService<M extends BaseMapper,R extends JpaRepository,data> {
             throw new RuntimeException("无法通过反射获取'id'字段", e);
         }
     }
-
+    public data selectByIdToRespository(Long id){
+        return (data) repository.findById(id).get();
+    }
     public data selectById(Long id){
         return (data) mapper.selectById(id);
     }
@@ -46,4 +49,9 @@ public class BaseService<M extends BaseMapper,R extends JpaRepository,data> {
     public void updateById(data entity){
         repository.save(entity);
     }
+
+    public void deleteByIdInBatch(List<Long> ids){
+        repository.deleteAllInBatch(ids);
+    }
+
 }
