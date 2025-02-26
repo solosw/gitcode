@@ -1,5 +1,6 @@
 package com.solosw.codelab.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.solosw.codelab.entity.po.House;
 import com.solosw.codelab.mapper.HouseMapper;
 import com.solosw.codelab.repositorys.HouseRospitory;
@@ -18,6 +19,9 @@ public class HouseService extends BaseService<HouseMapper, HouseRospitory, House
         return mapper.ownList(creatorId);
     }
 
+    public List<House> getHouseBySearch(String content){
+      return   mapper.getHouseBySearch(content);
+    }
 
 
 }

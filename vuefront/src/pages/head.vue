@@ -12,6 +12,9 @@ export default {
 
     handleCommand(command){
         location.href=command
+    },
+    search(){
+      location.href="/search?content="+this.searchContent
     }
   },
   created() {
@@ -38,7 +41,7 @@ export default {
           size="small"
       >
         <template #prefix>
-          <el-icon class="el-input__icon"><search /></el-icon>
+          <el-icon class="el-input__icon" @click="search"><search /></el-icon>
         </template>
       </el-input>
     </div>

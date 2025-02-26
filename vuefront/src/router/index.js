@@ -31,7 +31,10 @@ const routes = [
                 path: '/createOri', // 子路由
                 component: () => import('@/pages/createOri.vue')
             },
-
+            {
+                path: '/search', // 子路由
+                component: () => import('@/pages/search.vue')
+            },
             {
                 path: '/slider', // 子路由
                 component: () => import('@/pages/Slider.vue'),

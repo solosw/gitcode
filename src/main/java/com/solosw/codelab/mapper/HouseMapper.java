@@ -32,4 +32,13 @@ public interface HouseMapper extends BaseMapper<House> {
     @Select("select * from house where creator_id=#{creatorId} or origization_id in  " +
             "(select id from origization where creator_id=#{creatorId} or CAST(member_ids AS VARCHAR) like CONCAT('%', CAST(#{creatorId} AS VARCHAR), '%') )")
     List<House> ownList(Long creatorId);
+
+
+    @Select("<script>" +
+            "select * from house where kind=0" +
+            "<if test='content != null and content != \"\"'>" +
+            " and (description like concat('%', #{content}, '%') or name like concat('%', #{content}, '%'))" +
+            "</if>" +
+            "</script>")
+    List<House> getHouseBySearch(String content);
 }

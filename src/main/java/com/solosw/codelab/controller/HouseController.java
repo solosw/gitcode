@@ -117,4 +117,13 @@ public class HouseController {
 
         return ResponseBo.getSuccess(null);
     }
+
+
+    @PostMapping("/getHouseBySearch/{content}")
+    public ResponseBo getHouseBySearch(@PathVariable String content){
+
+
+
+        return ResponseBo.getSuccess(houseService.getHouseBySearch(content));
+    }
 }
