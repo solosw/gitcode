@@ -7,6 +7,18 @@ const routes = [
         path: '/head',
         component: () => import('@/pages/head.vue'),
         children: [
+
+            {
+                path: '/gitHeader', // 注意这里没有 '/'
+                component: () => import('@/pages/gitHeader.vue'),
+                children: [
+                    {
+                        path: '/project', // 子路由
+                        component: () => import('@/pages/project.vue')
+                    },
+                ]
+            },
+
             {
                 path: '/login', // 注意这里没有 '/'
                 component: () => import('@/pages/login.vue')
@@ -19,10 +31,7 @@ const routes = [
                 path: '/', // 默认子路由，当访问 '/head' 时加载此组件
                 component: () => import('@/pages/index.vue')
             },
-            {
-                path: '/project', // 子路由
-                component: () => import('@/pages/project.vue')
-            },
+
             {
                 path: '/new', // 子路由
                 component: () => import('@/pages/createRpo.vue')

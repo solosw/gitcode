@@ -29,6 +29,9 @@ public class GitoliteUtil {
  public  static  String workingDirectory = "C:/Users/solosw/Desktop/CodeLab";
  public static   String gitoliteAdminRepoUrl = "siki@45.207.211.56:gitolite-admin";
 
+ public static String getRepositoryPath(String path){
+     return workingDirectory+"/repositories/"+path+".git";
+ }
  public static String privateKey=workingDirectory+"/.ssh/id_rsa";
     public static void main(String[] args) {
 

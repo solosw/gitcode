@@ -222,7 +222,6 @@ public class GitServerUtil {
         return new HashMap<>();
     }
 
-
     public static List<FileInfo> lsTree(String gitDir,String treeNameOrHash,boolean setRecursive){
 
         try {
@@ -265,6 +264,35 @@ public class GitServerUtil {
 
             treeWalk.close();
             repository.close();
+            return fileInfoList;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
+    }
+    public static List<FileInfo> lsTree(String gitDir,String treeNameOrHash){
+
+        try {
+            List<FileInfo> fileInfoList=new ArrayList<>();
+            ProcessBuilder processBuilder=new ProcessBuilder("git","ls-tree",treeNameOrHash);
+            processBuilder.directory(new File(gitDir));
+            // 启动进程
+            Process process = processBuilder.start();
+
+            // 获取命令输出
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+
+                String[] data = line.split("\\s+", 4);
+                String mode=data[0].trim();
+                String type=data[1].trim();
+                String hash=data[2].trim();
+                String name=data[3].trim();
+                FileInfo fileInfo=new FileInfo(mode,name,hash,type);
+                fileInfoList.add(fileInfo);
+            }
             return fileInfoList;
         } catch (Exception e) {
             e.printStackTrace();
