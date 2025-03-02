@@ -1,7 +1,11 @@
 <template>
-  <div>
+  <div v-if="type==0">
     <!-- 代码高亮组件 -->
     <pre class="hljs-container"><code :class="languageClass" ref="codeBlock">{{ formattedCode }}</code></pre>
+  </div>
+  <div v-if="type==1">
+
+    <img :src="code" style="width: 500px;height: 500px">
   </div>
 </template>
 
@@ -20,6 +24,9 @@ export default {
     language: {
       type: String,
       required: true
+    },
+    type:{
+      required:true,
     }
   },
   computed: {
@@ -31,13 +38,12 @@ export default {
     }
   },
   mounted() {
-    this.highlightCode();
+    if(this.type==0)
+      this.highlightCode();
 
   },
   created() {
-      setTimeout(()=>{
-        this.highlightCode();
-      },1000)
+
   },
   methods: {
     highlightCode() {

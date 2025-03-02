@@ -28,8 +28,8 @@
             Clone
           </el-button>
 
-          <el-statistic title="Branches" :value="branches.length" />
-          <el-statistic title="Tags" :value="tags.length" />
+          <el-statistic title="Branches" :value="branches.length"/>
+          <el-statistic title="Tags" :value="tags.length"/>
         </el-space>
       </div>
 
@@ -47,12 +47,12 @@
             >
               <template #default="{ data }">
                 <el-icon class="file-icon">
-                  <Folder v-if="data.dir" />
-                  <Document v-else />
+                  <Folder v-if="data.dir"/>
+                  <Document v-else/>
                 </el-icon>
                 <span style="margin-right: 30%">{{ data.name }}</span>
-                <span>{{data.message}}</span>
-                <span style="margin-left: 30%">{{data.updateTime}}</span>
+                <span>{{ data.message }}</span>
+                <span style="margin-left: 30%">{{ data.updateTime }}</span>
 
               </template>
             </el-tree>
@@ -65,7 +65,7 @@
             <div class="description">
               <h3>{{ project.name }}</h3>
               <p class="update-time">Last updated: {{ project.updateTime }}</p>
-              <el-divider />
+              <el-divider/>
               <p>{{ project.description }}</p>
               <el-tag
                   v-for="tag in tags"
@@ -90,19 +90,20 @@
     </el-input>
   </el-dialog>
   <el-dialog v-model="showCode" width="70%" style="height: 80%;overflow: scroll">
-    <my-code :language="language" :code="chooseFileContent" v-if="showCode"></my-code>
+    <my-code :language="language" :code="chooseFileContent" v-if="showCode" :type="type"></my-code>
   </el-dialog>
 </template>
 
-<script >
+<script>
 import {Message, MessageBox} from "@element-plus/icons-vue";
 import {ElMessage} from "element-plus";
 import axios from "axios";
-import VueMarkdownEditor, { xss } from '@kangc/v-md-editor';
+import VueMarkdownEditor, {xss} from '@kangc/v-md-editor';
 import '@kangc/v-md-editor/lib/style/base-editor.css';
 import githubTheme from '@kangc/v-md-editor/lib/theme/github.js';
 import 'highlight.js/styles/github.css'; // 选择一种你喜欢的主题
 import myCode from "@/components/Code.vue"
+
 export default {
   name: 'YourComponentName',
   components: {
@@ -111,11 +112,12 @@ export default {
   },
   data() {
     return {
-      language:'py',
-      showCode:false,
-      chooseFileContent:"",
-      tags:[],
-      houseId:-1,
+      type:0,
+      language: 'py',
+      showCode: false,
+      chooseFileContent: "",
+      tags: [],
+      houseId: -1,
       showCloneDialog: false,
       cloneUrl: 'git@github.com:vue-gitee-example.git',
       activeMenu: 'code',
@@ -132,15 +134,15 @@ export default {
           path: '/src',
           dir: true,
           children: [
-            { name: 'main.js', path: '/src/main.js' },
-            { name: 'App.vue', path: '/src/App.vue' },
+            {name: 'main.js', path: '/src/main.js'},
+            {name: 'App.vue', path: '/src/App.vue'},
             {
               name: 'kkk',
               path: '/src/kkk',
-              dir:true,
-              children:[
-                { name: 'main.js', path: '/src/main.js' },
-                { name: 'App.vue', path: '/src/App.vue' },
+              dir: true,
+              children: [
+                {name: 'main.js', path: '/src/main.js'},
+                {name: 'App.vue', path: '/src/App.vue'},
               ]
 
             }
@@ -151,14 +153,14 @@ export default {
           path: '/public',
           isDir: true,
           children: [
-            { name: 'index.html', path: '/public/index.html' }
+            {name: 'index.html', path: '/public/index.html'}
           ]
         }
       ],
       branches: [
-        { name: 'main' },
-        { name: 'dev' },
-        { name: 'feat/login' }
+        {name: 'main'},
+        {name: 'dev'},
+        {name: 'feat/login'}
       ],
       treeProps: {
         label: 'name',
@@ -172,24 +174,41 @@ export default {
     },
     handleFileClick(data) {
       if (data.dir) {
-          if(data.show) return
-          var data11={
-            houseId:this.houseId,
-            fileHash:data.fileHash,
-            path:data.path
-          }
-          axios.post("/git/openDir",data11).then((res)=>{
-                var d= data.name.split(".")
-                if(d.length==2) this.language=d[1]
-                 else this.language="java"
+        if (data.show) return
+        var data11 = {
+          houseId: this.houseId,
+          fileHash: data.fileHash,
+          path: data.path
+        }
+        axios.post("/git/openDir", data11).then((res) => {
+          var d = data.name.split(".")
+          if (d.length == 2) this.language = d[1]
+          else this.language = "java"
 
-                  data.children=res.data.data
-                  data.show=true
-          })
-      }else {
-        axios.post("/git/catFile/"+this.houseId+"/"+data.fileHash).then((res)=>{
-              this.chooseFileContent=res.data.data
-              this.showCode=true
+          data.children = res.data.data
+          data.show = true
+        })
+      } else {
+        var type = 0;
+        if (this.checkIfBinary(data.name)) {
+          type = 1
+          if(!this.allowFile(data.name)){
+              ElMessage.error("不支持此文件类型查看");
+              return;
+          }
+        }
+        axios.post("/git/catFile/" + this.houseId + "/" + data.fileHash + "/" + type).then((res) => {
+
+          if (res.data.status == 200) {
+            if (type == 0) this.chooseFileContent = res.data.data
+            if (type == 1) this.chooseFileContent = 'data:image/png;base64,' + res.data.data
+            this.showCode = true
+            this.type=type
+          } else {
+            ElMessage.error(res.data.message)
+          }
+
+
         })
       }
     },
@@ -204,21 +223,45 @@ export default {
         message: '克隆地址已复制到剪贴板',
         type: 'success'
       });
+    },
+    checkIfBinary(fileName) {
+      // 常见的二进制文件扩展名列表
+      const binaryExtensions = [
+        'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'ico', // 图片格式
+        'mp4', 'avi', 'mov', 'mkv', 'flv', 'wmv', // 视频格式
+        'mp3', 'wav', 'ogg', 'flac', 'aac', // 音频格式
+        'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', // 文档格式
+        'zip', 'rar', '7z', 'tar', 'gz', // 压缩格式
+        'exe', 'dll', 'so', 'class', // 可执行文件或库
+        'psd', 'ai', 'eps', 'svgz', // 设计和矢量图格式
+        'obj', 'fbx', 'stl', 'glb', 'gltf' // 3D模型格式
+      ];
+
+      const extension = fileName.split('.').pop().toLowerCase();
+      return binaryExtensions.includes(extension);
+    },
+    allowFile(fileName) {
+      const binaryExtensions = [
+        'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'ico', // 图片格式
+      ];
+
+      const extension = fileName.split('.').pop().toLowerCase();
+      return binaryExtensions.includes(extension);
     }
   },
   created() {
     const params = new URLSearchParams(window.location.search);
     this.houseId = params.get('id'); // 假设你要获取名为 'param1' 的参数
 
-    axios.post("/git/getProject/"+this.houseId).then((res)=>{
-      if(res.data.status==200){
+    axios.post("/git/getProject/" + this.houseId).then((res) => {
+      if (res.data.status == 200) {
 
-          this.fileTree=res.data.data.fileTree
-          this.branches=res.data.data.branches
-          this.project=res.data.data.house
-          this.tags=res.data.data.tags
-          this.selectedBranch=this.branches[0]
-      }else {
+        this.fileTree = res.data.data.fileTree
+        this.branches = res.data.data.branches
+        this.project = res.data.data.house
+        this.tags = res.data.data.tags
+        this.selectedBranch = this.branches[0]
+      } else {
         ElMessage.error(res.data.message);
       }
     })
@@ -248,7 +291,7 @@ export default {
   padding: 15px;
   background: white;
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0,0,0,.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
 }
 
 .file-icon {

@@ -13,10 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RequestMapping("/back/git")
 @Slf4j
@@ -109,14 +106,24 @@ public class GitController {
     }
 
 
-    @PostMapping("/catFile/{houseId}/{fileHash}")
-    public ResponseBo catFile(@PathVariable Long houseId,@PathVariable String fileHash){
+    @PostMapping("/catFile/{houseId}/{fileHash}/{type}")
+    public ResponseBo catFile(@PathVariable Long houseId,@PathVariable String fileHash,@PathVariable Integer type){
         House  house=houseService.selectById(houseId);
         if(house==null){
             return ResponseBo.getFail(null,"仓库不存在",500);
         }
+
         String realPath=GitoliteUtil.getRepositoryPath( house.getPath());
-        return ResponseBo.getSuccess(GitServerUtil.catFile(realPath,fileHash));
+       if(type==0)  return ResponseBo.getSuccess(GitServerUtil.catFile(realPath,fileHash));
+       if(type==1){
+          byte[]  bytes=GitServerUtil.catFileByByte(realPath,fileHash);
+          if(bytes.length == 0){
+              return ResponseBo.getFail(null,"文件过大",500);
+          }
+          return ResponseBo.getSuccess( Base64.getEncoder().encodeToString(bytes));
+       }
+        return ResponseBo.getFail(null,"参数错误",500);
     }
+
 
 }

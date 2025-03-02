@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 
 public class GitServerUtil {
 
-
+    private static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 
     public static String getFatherCommitHash(String gitDir,String hash){
@@ -323,7 +323,32 @@ public class GitServerUtil {
         }
         return "";
     }
+    public static byte[] catFileByByte(String gitDir,String fileHash){
+        try {
+            // 打开仓库
+            Repository repository = new FileRepositoryBuilder()
+                    .setGitDir(new File(gitDir))
+                    .build();
 
+            // 将字符串形式的hash转换为ObjectId
+            ObjectId objectId = ObjectId.fromString(fileHash);
+
+            // 从仓库中打开该对象
+            ObjectLoader objectLoader = repository.open(objectId);
+
+            // 读取为字节数组
+            byte[] bytes = objectLoader.getBytes();
+            if(bytes.length>MAX_IMAGE_SIZE){
+                return new byte[0];
+            }
+            // 这里可以对bytes进行处理，比如保存到文件或进一步解析等
+           return bytes;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new byte[0];
+    }
     public static List<CommitInfo> findFileLatestCommit(String gitDir,String fileHash){
         try {
             List<CommitInfo> commitInfoList=new ArrayList<>();
@@ -404,6 +429,8 @@ public class GitServerUtil {
         //initGitArea("C:\\Users\\solosw\\Desktop\\CodeLab\\test\\test1.git");
       //System.out.println(  diffByHash("C:\\Users\\solosw\\Desktop\\CodeLab\\test\\test.git","216b5e1","3a47fa3"));
         //System.out.println(getFatherCommitHash("C:\\Users\\solosw\\Desktop\\CodeLab\\test\\test.git","248543e"));
+        System.out.println(Base64.getEncoder().encodeToString(catFileByByte(GitoliteUtil.getRepositoryPath("siki/happy"), "7a3cb65c5fd0c049485d9a90fd215895b543080c")));
+
     }
 
 
