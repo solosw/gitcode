@@ -5,10 +5,12 @@ import com.solosw.codelab.mapper.PublicKeyMapper;
 import com.solosw.codelab.repositorys.PublicKeyRospitory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class PublicKeyService extends BaseService<PublicKeyMapper, PublicKeyRospitory, PublicKey>{
 
-    public PublicKey getPublicKeyByCreatorIdOrId(Long id,Integer type){
+    public List<PublicKey> getPublicKeyByCreatorIdOrId(Long id, Integer type){
         return mapper.getPublicKeyByCreatorIdOrId(id,type);
     }
 }

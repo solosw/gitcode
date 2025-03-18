@@ -16,6 +16,10 @@ const routes = [
                         path: '/project', // 子路由
                         component: () => import('@/pages/project.vue')
                     },
+                    {
+                        path: '/houseSetting', // 子路由
+                        component: () => import('@/pages/houseSetting.vue')
+                    },
                 ]
             },
 

@@ -1,6 +1,7 @@
 package com.solosw.codelab.service;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.solosw.codelab.entity.po.Users;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,6 +22,10 @@ public class BaseService<M extends BaseMapper,R extends JpaRepository,data> {
     public Long insert(data d){
         repository.save(d);
         return getId(d);
+    }
+
+    public List<data> getBatchesById(List<Long> ids){
+        return mapper.selectBatchIds(ids);
     }
     private Long getId(data entity) {
         try {

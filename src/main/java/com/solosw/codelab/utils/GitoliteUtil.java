@@ -27,34 +27,17 @@ import java.util.Map;
 
 public class GitoliteUtil {
  public  static  String workingDirectory = "C:/Users/solosw/Desktop/CodeLab";
- public static   String gitoliteAdminRepoUrl = "siki@45.207.211.56:gitolite-admin";
+ public static  String gitRepoUrlPrx="45.207.211.56";
 
- public static String getRepositoryPath(String path){
-     return workingDirectory+"/repositories/"+path+".git";
+ public static String getUrl(String username,String path){
+     return "ssh://"+username+"@"+gitRepoUrlPrx+"/"+path;
  }
- public static String privateKey=workingDirectory+"/.ssh/id_rsa";
-    public static void main(String[] args) {
+ public static String getRepositoryPath(String path){
+     return workingDirectory+"/"+path+".git";
+ }
 
 
-        try {
-            // Clone the gitolite-admin repository if not already cloned
-//cloneOrPullRepo(workingDirectory, gitoliteAdminRepoUrl);
-
-            // Example operations
-            //createRepository("newRepo1","solosw");
-            //addUsersToRepository("newRepo1", List.of("user1","user2"),"RW+");
-            //modifyUserAccessInRepository("newRepo1", "user1", "RW");
-            //removeUserFromRepository("newRepo", "user1");
-           // deleteRepository("newRepo1");
-            //addUserSSHKeyToGitolite("so","111jkghih");
-            // Commit and push changes
-          //  commitAndPushChanges(workingDirectory);
-            //deleteUserSSHKeyToGitolite("so");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
+    /*
     public static synchronized void deleteUserSSHKeyToGitolite(String username) throws IOException, InterruptedException {
         String keyDirPath = workingDirectory + "/gitolite-admin/keydir/";
         String publicKeyFilePath = keyDirPath + username + ".pub";
@@ -109,12 +92,7 @@ public class GitoliteUtil {
         }
     }
 
-    /**
-     * Creates a new repository in the Gitolite configuration.
-     *
-     * @param repoName The name of the new repository.
-     * @throws IOException If an I/O error occurs.
-     */
+
     public static synchronized void createRepository(String repoName,String owerName) throws IOException {
         Path confFilePath = Paths.get(workingDirectory+"/gitolite-admin/conf/gitolite.conf");
         StringBuilder confContent = new StringBuilder();
@@ -135,12 +113,7 @@ public class GitoliteUtil {
         System.out.println("Created repository " + repoName);
     }
 
-    /**
-     * Deletes a repository from the Gitolite configuration.
-     *
-     * @param repoName The name of the repository to delete.
-     * @throws IOException If an I/O error occurs.
-     */
+
     public static synchronized void deleteRepository(String repoName) throws IOException {
         Path confFilePath = Paths.get(workingDirectory+"/gitolite-admin/conf/gitolite.conf");
         List<String> lines = Files.readAllLines(confFilePath);
@@ -178,14 +151,7 @@ public class GitoliteUtil {
         System.out.println("Deleted repository " + repoName);
     }
 
-    /**
-     * Adds users to a repository in the Gitolite configuration.
-     *
-     * @param repoName         The name of the repository.
-     * @param users            A list of usernames for the new users.
-     * @throws IOException          If an I/O error occurs.
-     * @throws InterruptedException If the process is interrupted.
-     */
+
     public static synchronized void addUsersToRepository(String repoName, List<String> users,String permission) throws IOException, InterruptedException {
 
         updateConfForUsers(repoName, users, permission);
@@ -194,14 +160,7 @@ public class GitoliteUtil {
 
         updateConfForUsers(repoName, users);
     }
-    /**
-     * Modifies user access in a repository in the Gitolite configuration.
-     *
-     * @param repoName   The name of the repository.
-     * @param username   The username of the user whose access needs modification.
-     * @param permission The new permission level (e.g., RW+, R, W).
-     * @throws IOException If an I/O error occurs.
-     */
+
     public static synchronized void modifyUserAccessInRepository(String repoName, String username, String permission) throws IOException {
         Path confFilePath = Paths.get(workingDirectory+"/gitolite-admin/conf/gitolite.conf");
         List<String> lines = Files.readAllLines(confFilePath);
@@ -305,13 +264,7 @@ public class GitoliteUtil {
         System.out.println("Modified user " + user.getUserName() + " access in repository " + repoName);
     }
 
-    /**
-     * Removes a user from a repository in the Gitolite configuration.
-     *
-     * @param repoName The name of the repository.
-     * @param username The username of the user to remove.
-     * @throws IOException If an I/O error occurs.
-     */
+
     public static synchronized void removeUserFromRepository(String repoName, String username) throws IOException {
         Path confFilePath = Paths.get(workingDirectory+"/gitolite-admin/conf/gitolite.conf");
         List<String> lines = Files.readAllLines(confFilePath);
@@ -361,14 +314,7 @@ public class GitoliteUtil {
         System.out.println("Removed user " + username + " from repository " + repoName);
     }
 
-    /**
-     * Updates the conf/gitolite.conf file for users with specified permissions.
-     *
-     * @param repoName   The name of the repository.
-     * @param users      A list of usernames.
-     * @param permission The permission level (e.g., RW+, R, W).
-     * @throws IOException If an I/O error occurs.
-     */
+
      static void updateConfForUsers(String repoName, List<String> users, String permission) throws IOException {
         Path confFilePath = Paths.get(workingDirectory+"/gitolite-admin/conf/gitolite.conf");
         List<String> lines = Files.readAllLines(confFilePath);
@@ -563,6 +509,7 @@ public class GitoliteUtil {
         }
 
     }
+    */
 }
 
 

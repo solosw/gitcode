@@ -395,14 +395,6 @@ public class GitServerUtil {
                 System.err.println("directory has existed");
                 return;
             }
-            // 如果目录不存在，则创建它
-            if (!repoDir.exists()) {
-                boolean created = repoDir.mkdirs();
-                if (!created) {
-                    System.err.println("Failed to create directory for bare repository.");
-                    return;
-                }
-            }
 
             // 使用 Git.init() 方法初始化一个新的裸仓库
             Git git = Git.init()

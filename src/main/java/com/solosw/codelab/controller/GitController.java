@@ -3,9 +3,9 @@ package com.solosw.codelab.controller;
 import com.solosw.codelab.entity.bo.CodeBo;
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.House;
+import com.solosw.codelab.entity.po.Users;
 import com.solosw.codelab.service.HouseService;
 import com.solosw.codelab.service.UsersService;
-import com.solosw.codelab.task.GitoliteTask;
 import com.solosw.codelab.utils.GitServerUtil;
 import com.solosw.codelab.utils.GitoliteUtil;
 import jakarta.annotation.Resource;
@@ -24,11 +24,49 @@ public class GitController {
     @Autowired
     UsersService usersService;
 
-    @Autowired
-    GitoliteTask gitoliteTask;
 
-    @PostMapping("/getProject/{houseId}")
-    public ResponseBo getProjectById(@PathVariable Long houseId){
+    @PostMapping("/changeBranch")
+    public ResponseBo changeBranch(@RequestBody Map<String,String> map){
+
+
+        Long houseId= Long.valueOf(map.get("id"));
+        String branch=map.get("branch");
+        House  house=houseService.selectById(houseId);
+        if(house==null){
+            return ResponseBo.getFail(null,"仓库不存在",500);
+        }
+        String realPath=GitoliteUtil.getRepositoryPath( house.getPath());
+
+        List<GitServerUtil.FileInfo> fileInfoList;
+        fileInfoList = GitServerUtil.lsTree(realPath, branch, false);
+        List<CodeBo> codeBoList=new ArrayList<>();
+        for(GitServerUtil.FileInfo fileInfo:fileInfoList){
+            CodeBo codeBo=new CodeBo();
+            if("tree".equals(fileInfo.getType())){
+                codeBo.setDir(true);
+            }else {
+                codeBo.setDir(false);
+            }
+            codeBo.setName(fileInfo.getName());
+            codeBo.setPath(fileInfo.getName());
+            codeBo.setFileHash(fileInfo.getHash());
+            List<GitServerUtil.CommitInfo> commitInfoList=GitServerUtil.findFileLatestCommit(realPath,fileInfo.getHash());
+            if(!commitInfoList.isEmpty()){
+                GitServerUtil.CommitInfo commitInfo=commitInfoList.getFirst();
+                codeBo.setSubmitHash(commitInfo.getHash());
+                codeBo.setMessage(commitInfo.getMessage());
+                codeBo.setUpdateTime(commitInfo.getTime());
+                codeBo.setUsername(commitInfo.getAuthor());
+            }
+           codeBoList.add(codeBo);
+        }
+
+
+        return ResponseBo.getSuccess(codeBoList);
+    }
+    //ToDO 权限
+    @PostMapping("/getProject/{houseId}/{currentUserId}")
+    public ResponseBo getProjectById(@PathVariable Long houseId,@PathVariable Long currentUserId){
         House  house=houseService.selectById(houseId);
         if(house==null){
             return ResponseBo.getFail(null,"仓库不存在",500);
@@ -38,7 +76,12 @@ public class GitController {
         List<String> branches= GitServerUtil.getAllBranches(realPath);
         if(branches.isEmpty()) return  ResponseBo.getFail(null,"读取分支错误",500);
         List<GitServerUtil.FileInfo> fileInfoList;
-        fileInfoList = GitServerUtil.lsTree(realPath, branches.get(0), false);
+        if(branches.contains("master")){
+            fileInfoList = GitServerUtil.lsTree(realPath, "master", false);
+        }else {
+            fileInfoList = GitServerUtil.lsTree(realPath, branches.get(0), false);
+        }
+
         for(GitServerUtil.FileInfo fileInfo:fileInfoList){
             CodeBo codeBo=new CodeBo();
             if("tree".equals(fileInfo.getType())){
@@ -59,12 +102,13 @@ public class GitController {
             }
             codeBos.add(codeBo);
         }
-
+        Users currentUser=usersService.selectById(currentUserId);
         Map<String,Object> map=new HashMap<>();
         map.put("fileTree",codeBos);
         map.put("house",house);
         map.put("branches",branches);
         map.put("tags",GitServerUtil.getAllTags(realPath));
+        map.put("clone",GitoliteUtil.getUrl(currentUser.getName(), house.getPath()));
         return ResponseBo.getSuccess(map);
     }
 

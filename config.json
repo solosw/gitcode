@@ -1,0 +1,8 @@
+{
+    "sshPort": 9999,
+    "maxThread": 20,
+    "gitRootPath": "C:\\Users\\solosw\\Desktop\\CodeLab\\repositories",
+    "host": "127.0.0.1",
+    "admin": "git",
+    "password": "123456"
+}

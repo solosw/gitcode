@@ -35,4 +35,6 @@ public class UsersService extends BaseService<UsersMapper, UsersRepository, User
     public Users getUserByName(String name){
         return mapper.selectOne(new QueryWrapper<Users>().eq("name",name));
     }
+
+
 }

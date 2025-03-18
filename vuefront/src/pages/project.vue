@@ -11,6 +11,7 @@
               v-model="selectedBranch"
               placeholder="Select branch"
               style="width: 180px"
+              @change="changeBranch"
           >
             <el-option
                 v-for="item in branches"
@@ -51,7 +52,7 @@
                   <Document v-else/>
                 </el-icon>
                 <span style="margin-right: 30%">{{ data.name }}</span>
-                <span>{{ data.message }}</span>
+                <el-link :href="'/commit?id='+houseId+'&&commit='+data.submitHash">{{ data.message }}</el-link>
                 <span style="margin-left: 30%">{{ data.updateTime }}</span>
 
               </template>
@@ -79,7 +80,15 @@
           </el-card>
         </el-col>
       </el-row>
+      <el-row :gutter="20">
+          <el-col :span="16" >
+            <vue-markdown-editor v-model="readme" :mode="'preview'" v-if="readme"></vue-markdown-editor>
+          </el-col>
+
+      </el-row>
     </el-main>
+
+
   </div>
   <el-dialog title="克隆仓库" v-model="showCloneDialog" width="40%">
     <el-input v-model="cloneUrl" readonly>
@@ -112,6 +121,8 @@ export default {
   },
   data() {
     return {
+      user:JSON.parse(localStorage.getItem("user")).user,
+      readme:"",
       type:0,
       language: 'py',
       showCode: false,
@@ -169,6 +180,48 @@ export default {
     };
   },
   methods: {
+    changeBranch(branch){
+      var readmeFiles=null
+      axios.post("/git/changeBranch" ,{
+          id:this.houseId,
+          branch:branch
+      }).then((res) => {
+        if (res.data.status == 200) {
+
+          this.fileTree = res.data.data
+          this.fileTree.sort((a, b) => {
+            // 如果 a.dir 为 true 而 b.dir 不是，则 a 应排在前面
+            if (a.dir && !b.dir) return -1;
+            // 如果 b.dir 为 true 而 a.dir 不是，则 b 应排在前面
+            if (!a.dir && b.dir) return 1;
+            // 如果两者相同，则保持原有顺序不变
+            return 0;
+          });
+          readmeFiles = this.fileTree.filter(item =>
+              !item.dir && item.name.toLowerCase() === 'readme.md'
+          );
+
+
+          if(readmeFiles&&readmeFiles.length>0){
+            axios.post("/git/catFile/" + this.houseId + "/" + readmeFiles[0].fileHash + "/" + 0).then((res) => {
+
+              if (res.data.status == 200) {
+                this.readme = res.data.data
+              } else {
+                ElMessage.error(res.data.message)
+              }
+            })
+          }else {
+            this.readme=null
+          }
+
+        } else {
+          ElMessage.error(res.data.message);
+        }
+      })
+
+
+    },
     handleClone() {
       this.showCloneDialog = true;
     },
@@ -186,6 +239,15 @@ export default {
           else this.language = "java"
 
           data.children = res.data.data
+          data.children.sort((a, b) => {
+            // 如果 a.dir 为 true 而 b.dir 不是，则 a 应排在前面
+            if (a.dir && !b.dir) return -1;
+            // 如果 b.dir 为 true 而 a.dir 不是，则 b 应排在前面
+            if (!a.dir && b.dir) return 1;
+            // 如果两者相同，则保持原有顺序不变
+            return 0;
+          });
+
           data.show = true
         })
       } else {
@@ -252,19 +314,44 @@ export default {
   created() {
     const params = new URLSearchParams(window.location.search);
     this.houseId = params.get('id'); // 假设你要获取名为 'param1' 的参数
-
-    axios.post("/git/getProject/" + this.houseId).then((res) => {
+    var readmeFiles=null
+    axios.post("/git/getProject/" + this.houseId+"/"+this.user.id).then((res) => {
       if (res.data.status == 200) {
 
         this.fileTree = res.data.data.fileTree
         this.branches = res.data.data.branches
         this.project = res.data.data.house
         this.tags = res.data.data.tags
-        this.selectedBranch = this.branches[0]
+        this.cloneUrl=res.data.data.clone
+        this.selectedBranch = this.branches[this.branches.length-1]
+        this.fileTree.sort((a, b) => {
+          // 如果 a.dir 为 true 而 b.dir 不是，则 a 应排在前面
+          if (a.dir && !b.dir) return -1;
+          // 如果 b.dir 为 true 而 a.dir 不是，则 b 应排在前面
+          if (!a.dir && b.dir) return 1;
+          // 如果两者相同，则保持原有顺序不变
+          return 0;
+        });
+         readmeFiles = this.fileTree.filter(item =>
+            !item.dir && item.name.toLowerCase() === 'readme.md'
+        );
+        if(readmeFiles&&readmeFiles.length>0){
+          axios.post("/git/catFile/" + this.houseId + "/" + readmeFiles[0].fileHash + "/" + 0).then((res) => {
+
+            if (res.data.status == 200) {
+              this.readme = res.data.data
+            } else {
+              ElMessage.error(res.data.message)
+            }
+          })
+        }else {
+          this.readme=""
+        }
       } else {
         ElMessage.error(res.data.message);
       }
     })
+
   }
 };
 </script>

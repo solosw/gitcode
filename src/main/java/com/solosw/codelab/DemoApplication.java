@@ -20,6 +20,7 @@ import java.io.IOException;
         basePackages = "com.solosw.codelab.repositorys"
 )
 @SpringBootApplication
+
 public class DemoApplication {
 
     public static void main(String[] args) {

@@ -1,21 +1,24 @@
 package com.solosw.codelab.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.solosw.codelab.entity.bo.CodeBo;
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.House;
+import com.solosw.codelab.entity.po.HouseRight;
 import com.solosw.codelab.entity.po.Users;
+import com.solosw.codelab.enums.HouseRightEnum;
+import com.solosw.codelab.service.HouseRightService;
 import com.solosw.codelab.service.HouseService;
 import com.solosw.codelab.service.UsersService;
-import com.solosw.codelab.task.GitoliteTask;
+import com.solosw.codelab.utils.GitServerUtil;
 import com.solosw.codelab.utils.GitoliteUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.h2.util.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RequestMapping("/back/house")
 @Slf4j
@@ -26,28 +29,30 @@ public class HouseController {
     HouseService houseService;
     @Autowired
     UsersService usersService;
-
     @Autowired
-    GitoliteTask gitoliteTask;
+    HouseRightService houseRightService;
 
     @PostMapping("/create")
     public ResponseBo create(@RequestBody House house){
         try {
             houseService.insert(house);
-            String userName=usersService.selectById(house.getCreatorId()).getName();
-            GitoliteTask.Task task=new GitoliteTask.Task();
-            task.setTaskType(GitoliteTask.TaskType.create_rep);
-            GitoliteUtil.UserRule userRule=new GitoliteUtil.UserRule();
-            task.setRepo(house.getPath());
-            if(house.getKind()==0){
-                userRule.setUserName(publicHouse);
+            Users users=usersService.selectById(house.getCreatorId());
+            String userName=users.getName();
+            HouseRight houseRight=new HouseRight();
+            houseRight.setHouseId(house.getId());
+            HouseRight.Right right=new HouseRight.Right();
+
+            if(house.getKind()==0){// 公开为-1
+                houseRight.setUserId(-1L);
+                right.setOwner(true).setRight(HouseRightEnum.READ_WRITE_FORCE.getPermission());
             }
             else {
-                userRule.setUserName(userName);
+                houseRight.setUserId(users.getId());
+                right.setOwner(true).setRight(HouseRightEnum.READ_WRITE_FORCE.getPermission());
             }
-            task.setUserRule(userRule);
-            gitoliteTask.addToQueue(task);
-
+            houseRight.setRights(JSON.toJSONString(List.of(right)));
+            houseRightService.insert(houseRight);
+            GitServerUtil.initGitArea(GitoliteUtil.getRepositoryPath(house.getPath()));
         }catch (Exception e){
             log.error(e.toString()) ;
             return ResponseBo.getFail(null,"创建失败",500);
@@ -69,6 +74,7 @@ public class HouseController {
         List<House> plist=new ArrayList<>();
         List<House> pulist=new ArrayList<>();
         List<House> orlist=new ArrayList<>();
+        List<House> partIn=new ArrayList<>();
         for(House h:list){
             if(h.getType().equals(0)){
                 if(h.getKind().equals(0)){
@@ -81,11 +87,21 @@ public class HouseController {
             }
 
         }
+        List<HouseRight> houseRightList=houseRightService.getHouseRightByUser(house.getCreatorId());
+        List<Long> ids=new ArrayList<>();
+        if(houseRightList!=null){
+            for(HouseRight right:houseRightList)  {
+                ids.add(right.getHouseId());
+            }
+            partIn=houseService.getBatchesById(ids);
+        }
+
+
         Map<String,Object> stringObjectMap=new HashMap<>();
         stringObjectMap.put("private",plist);
         stringObjectMap.put("public",pulist);
         stringObjectMap.put("orz",orlist);
-
+        stringObjectMap.put("part",partIn);
         return ResponseBo.getSuccess(stringObjectMap);
     }
 
@@ -98,23 +114,28 @@ public class HouseController {
         house.setKind(kind);
         houseService.updateById(house);
         Users users=usersService.selectById(house.getCreatorId());
+        HouseRight.Right right=new HouseRight.Right();
+        HouseRight houseRight=new HouseRight();
+        houseRight.setHouseId(house.getId());
+        if(house.getKind()==0){// 公开为-1
+
+        }
+        else {
+
+        }
+        houseRight.setRights(JSON.toJSONString(List.of(right)));
         if(kind.equals(0)){
 
-            GitoliteTask.Task task=new GitoliteTask.Task().setRepo(house.getPath()).
-                    setTaskType(GitoliteTask.TaskType.delete_user).setUserRule(new GitoliteUtil.UserRule().setUserName(users.getName()));
-            gitoliteTask.addToQueue(task);
-            GitoliteTask.Task task1=new GitoliteTask.Task().setRepo(house.getPath()).
-                    setTaskType(GitoliteTask.TaskType.add_user).setUserRule(new GitoliteUtil.UserRule().setUserName("@all").setPermission(GitoliteUtil.GitolitePermission.READ_WRITE_FORCE));
-            gitoliteTask.addToQueue(task1);
+            houseRightService.deleteHouseByHouseIdAndUserId(house.getId(), users.getId());
+            houseRight.setUserId(-1L);
+            right.setOwner(true).setRight(HouseRightEnum.READ_WRITE_FORCE.getPermission());
         } else if (kind.equals(1)) {
-            GitoliteTask.Task task=new GitoliteTask.Task().setRepo(house.getPath()).
-                    setTaskType(GitoliteTask.TaskType.delete_user).setUserRule(new GitoliteUtil.UserRule().setUserName("@all"));
-            gitoliteTask.addToQueue(task);
-            GitoliteTask.Task task1=new GitoliteTask.Task().setRepo(house.getPath()).
-                    setTaskType(GitoliteTask.TaskType.add_user).setUserRule(new GitoliteUtil.UserRule().setUserName(users.getName()).setPermission(GitoliteUtil.GitolitePermission.READ_WRITE_FORCE));
-            gitoliteTask.addToQueue(task1);
+            houseRightService.deleteHouseByHouseIdAndUserId(house.getId(), -1L);
+            houseRight.setUserId(users.getId());
+            right.setOwner(true).setRight(HouseRightEnum.READ_WRITE_FORCE.getPermission());
         }
-
+        houseRight.setRights(JSON.toJSONString(List.of(right)));
+        houseRightService.insert(houseRight);
         return ResponseBo.getSuccess(null);
     }
 
@@ -126,4 +147,25 @@ public class HouseController {
 
         return ResponseBo.getSuccess(houseService.getHouseBySearch(content));
     }
+
+
+    @PostMapping("/getHouseById/{id}")
+    public ResponseBo getHouseById(@PathVariable Long id){
+
+        return ResponseBo.getSuccess(houseService.selectById(id));
+    }
+    @PostMapping("/getBranch/{houseId}")
+    public ResponseBo getProjectById(@PathVariable Long houseId){
+        House  house=houseService.selectById(houseId);
+        if(house==null){
+            return ResponseBo.getFail(null,"仓库不存在",500);
+        }
+        String realPath=GitoliteUtil.getRepositoryPath( house.getPath());
+        List<String> branches= GitServerUtil.getAllBranches(realPath);
+        if(branches.isEmpty()) return  ResponseBo.getFail(null,"读取分支错误",500);
+        return ResponseBo.getSuccess(branches);
+    }
+
+
+
 }

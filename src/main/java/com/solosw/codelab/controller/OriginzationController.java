@@ -3,13 +3,13 @@ package com.solosw.codelab.controller;
 import com.solosw.codelab.entity.bo.OrigationBo;
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.House;
+import com.solosw.codelab.entity.po.HouseRight;
 import com.solosw.codelab.entity.po.Origization;
 import com.solosw.codelab.entity.po.Users;
+import com.solosw.codelab.service.HouseRightService;
 import com.solosw.codelab.service.HouseService;
 import com.solosw.codelab.service.OrigizationService;
 import com.solosw.codelab.service.UsersService;
-import com.solosw.codelab.task.GitoliteTask;
-import com.solosw.codelab.utils.GitoliteUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -30,9 +30,9 @@ public class OriginzationController {
 
     @Autowired
     HouseService houseService;
-
     @Autowired
-    GitoliteTask gitoliteTask;
+    HouseRightService houseRightService;
+
     @PostMapping("/getMyOrifization/{userId}")
     public ResponseBo getMyOrifization(@PathVariable Long userId){
       List<Origization> origizationList= origizationService.getOrigizationListByUserId(userId);
@@ -65,7 +65,8 @@ public class OriginzationController {
                List<Long> ids=new ArrayList<>();
                for(House house:houseList){
                    ids.add(house.getId());
-                   gitoliteTask.addToQueue(new GitoliteTask.Task().setRepo(house.getPath()).setTaskType(GitoliteTask.TaskType.delete_rep));
+                   houseRightService.deleteByHouseId(house.getId());
+
                }
                 houseService.deleteByIdInBatch(ids);
            }
@@ -81,7 +82,7 @@ public class OriginzationController {
             List<Long> ids=new ArrayList<>();
             for(House house:houseList){
                 ids.add(house.getId());
-                gitoliteTask.addToQueue(new GitoliteTask.Task().setRepo(house.getPath()).setTaskType(GitoliteTask.TaskType.delete_rep));
+                houseRightService.deleteByHouseId(house.getId());
             }
             houseService.deleteByIdInBatch(ids);
         }

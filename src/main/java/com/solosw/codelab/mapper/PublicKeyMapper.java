@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.solosw.codelab.entity.po.PublicKey;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.List;
+
 public interface PublicKeyMapper extends BaseMapper<PublicKey> {
 
 
@@ -26,6 +28,6 @@ public interface PublicKeyMapper extends BaseMapper<PublicKey> {
             "</choose>",
             "</script>"
     })
-    PublicKey getPublicKeyByCreatorIdOrId(Long id,Integer type);
+    List<PublicKey> getPublicKeyByCreatorIdOrId(Long id, Integer type);
 
 }

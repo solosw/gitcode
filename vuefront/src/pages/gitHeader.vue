@@ -1,5 +1,5 @@
 <template>
-  <el-tabs type="card" class="demo-tabs" >
+  <el-tabs type="card" class="demo-tabs" @tab-change="changeTab">
     <el-tab-pane>
       <template #label>
         <span class="custom-tabs-label">
@@ -40,7 +40,7 @@
         </span>
       </template>
     </el-tab-pane>
-    <el-tab-pane label="Task">
+    <el-tab-pane label="Task" v-if="house.creatorId==user.id">
       <template #label>
         <span class="custom-tabs-label">
           <el-icon><setting /></el-icon>
@@ -88,6 +88,31 @@
   font-weight: 600;
 }
 </style>
-<script setup>
+<script >
 import {Brush, Collection, Document, Notebook, Setting, Timer} from "@element-plus/icons-vue";
+import axios from "axios";
+export default {
+  data(){
+    return{
+        data:["project","issues",'wiki','history','pull','houseSetting'],
+        user:JSON.parse(localStorage.getItem("user")).user,
+        house:{}
+    }
+  },
+  methods:{
+    changeTab(value){
+      const params = new URLSearchParams(window.location.search);
+      var id = params.get('id'); // 假设你要获取名为 'param1' 的参数
+      location.href="/"+this.data[value]+"?id="+id
+    }
+  },
+  created() {
+    const params = new URLSearchParams(window.location.search);
+    var id = params.get('id'); // 假设你要获取名为 'param1' 的参数
+      axios.post("/house/getHouseById/"+id).then((res)=>{
+          if(res.data.status==200) this.house=res.data.data
+      })
+
+  }
+}
 </script>

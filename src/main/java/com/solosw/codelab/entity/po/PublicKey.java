@@ -25,8 +25,10 @@ public class PublicKey {
 
     @Column(name = "public_key", nullable = false, unique = true,columnDefinition = "TEXT")
     private String publicKey;
+    @Column(name = "name", nullable = true, unique = false,columnDefinition = "TEXT")
+    private String name;
 
-    @Column(name = "creator_id", nullable = false,unique = true)
+    @Column(name = "creator_id", nullable = false,unique = false)
     private Long creatorId;
     @Column(name = "create_time", nullable = false, updatable = false)
     private LocalDateTime createTime;
