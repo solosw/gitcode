@@ -88,7 +88,10 @@ public class MyGitPackCommand extends AbstractGitCommand {
                     Map<String,Ref> saved=new HashMap<>();
                     for(String bran:ref.keySet()){
                         String[] strings=bran.split("/");
-                        if(strings.length!=3) continue;
+                        if(strings.length!=3) {
+                            saved.put(bran, ref.get(bran));
+                            continue;
+                        }
                         String branch=strings[2];
                         for(HouseRight.Right right:rightList){
                             if(right.getOwner()&& !right.getRight().equals(HouseRightEnum.NONE.getPermission())) {
@@ -108,7 +111,6 @@ public class MyGitPackCommand extends AbstractGitCommand {
                             ref.remove(r);
                         }
                     }
-
                     return ref;
                 });
 
@@ -126,12 +128,16 @@ public class MyGitPackCommand extends AbstractGitCommand {
                 ReceivePack receivePack=new ReceivePack(db);
                 if(rightList.isEmpty()) return;
                 receivePack.setPreReceiveHook(new MyPreRecieveHook(house,users,houseRight,gitPersmionHelper));
+                /*
                 receivePack.setRefFilter((ref)->{
 
                     Map<String,Ref> saved=new HashMap<>();
                     for(String bran:ref.keySet()){
                         String[] strings=bran.split("/");
-                        if(strings.length!=3) continue;
+                        if(strings.length!=3) {
+                            saved.put(bran, ref.get(bran));
+                            continue;
+                        }
                         String branch=strings[2];
                         for(HouseRight.Right right:rightList){
                             if(right.getOwner()&& !right.getRight().equals(HouseRightEnum.NONE.getPermission())
@@ -150,6 +156,8 @@ public class MyGitPackCommand extends AbstractGitCommand {
                     }
                     return ref;
                 });
+                *
+                 */
                 receivePack.receive(this.getInputStream(), this.getOutputStream(), this.getErrorStream());
             }
 

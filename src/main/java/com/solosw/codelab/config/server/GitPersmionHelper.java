@@ -41,4 +41,8 @@ public class GitPersmionHelper {
     public HouseRight getHouseRightByUserAndHouse(Long userId, Long houseId){
         return houseRightService.getHouseRightByUserAndHouse(userId,houseId);
     }
+
+    public House getHouse(Long id){
+        return houseService.selectById(id);
+    }
 }

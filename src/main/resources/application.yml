@@ -21,4 +21,5 @@ local:
   file:
     dir: /Users/solosw/Desktop/CodeLab/area/test/
     path: /data
-
+server:
+  port: 8080

@@ -91,9 +91,17 @@
 
   </div>
   <el-dialog title="克隆仓库" v-model="showCloneDialog" width="40%">
+    <h2>SSH:</h2>
     <el-input v-model="cloneUrl" readonly>
       <template #append>
-        <el-button slot="append" @click="copyToClipboard">复制</el-button>
+        <el-button slot="append" @click="copyToClipboard(this.cloneUrl)">复制</el-button>
+      </template>
+
+    </el-input>
+    <h2>Http:</h2>
+    <el-input v-model="httpUrl" readonly>
+      <template #append>
+        <el-button slot="append" @click="copyToClipboard(this.httpUrl)">复制</el-button>
       </template>
 
     </el-input>
@@ -121,6 +129,7 @@ export default {
   },
   data() {
     return {
+      httpUrl:"",
       user:JSON.parse(localStorage.getItem("user")).user,
       readme:"",
       type:0,
@@ -274,9 +283,9 @@ export default {
         })
       }
     },
-    copyToClipboard() {
+    copyToClipboard(d) {
       const el = document.createElement('textarea');
-      el.value = this.cloneUrl;
+      el.value = d;
       document.body.appendChild(el);
       el.select();
       document.execCommand('copy');
@@ -323,6 +332,7 @@ export default {
         this.project = res.data.data.house
         this.tags = res.data.data.tags
         this.cloneUrl=res.data.data.clone
+        this.httpUrl=res.data.data.httpClone
         this.selectedBranch = this.branches[this.branches.length-1]
         this.fileTree.sort((a, b) => {
           // 如果 a.dir 为 true 而 b.dir 不是，则 a 应排在前面

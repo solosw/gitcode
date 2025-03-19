@@ -6,14 +6,12 @@ import com.solosw.codelab.config.server.GitPersmionHelper;
 import com.solosw.codelab.entity.po.Users;
 import com.solosw.codelab.service.UsersService;
 import com.solosw.codelab.utils.GitoliteUtil;
-import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.apache.sshd.server.SshServer;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.integration.IntegrationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 @Configuration
-public class ServerConfig implements ApplicationContextAware {
+public class GitSSHServerConfig implements ApplicationContextAware {
 
     @Autowired
     UsersService usersService;
@@ -90,5 +88,7 @@ public class ServerConfig implements ApplicationContextAware {
         String host;
         String admin;
         String password;
+        String encodedKey;
+        Integer serverPort;
     }
 }

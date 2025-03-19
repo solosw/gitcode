@@ -1,5 +1,6 @@
 package com.solosw.codelab.controller;
 
+import com.solosw.codelab.config.GitHttpServletConfig;
 import com.solosw.codelab.entity.bo.CodeBo;
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.House;
@@ -109,6 +110,7 @@ public class GitController {
         map.put("branches",branches);
         map.put("tags",GitServerUtil.getAllTags(realPath));
         map.put("clone",GitoliteUtil.getUrl(currentUser.getName(), house.getPath()));
+        map.put("httpClone", GitHttpServletConfig.getClonePath(currentUserId,houseId));
         return ResponseBo.getSuccess(map);
     }
 

@@ -43,7 +43,10 @@ public class MyPreRecieveHook implements PreReceiveHook {
             System.out.println(type.name());
             String refName= command.getRefName();
             String[] strings= refName.split("/");
-            if(strings.length!=3) continue;
+            if(strings.length!=3) {
+                saved.add(command);
+                continue;
+            }
             String branch=strings[2];
             String currPer=per.get(branch);
             if(StringUtils.isNullOrEmpty(currPer)) {
@@ -56,7 +59,7 @@ public class MyPreRecieveHook implements PreReceiveHook {
                 } else if (type.equals(ReceiveCommand.Type.UPDATE_NONFASTFORWARD)) {
                     if(ss.equals(HouseRightEnum.READ_WRITE_FORCE.getPermission())) saved.add(command);
                 } else  {
-                    if(ss.equals(HouseRightEnum.READ_WRITE.getPermission())) saved.add(command);
+                    if(ss.equals(HouseRightEnum.READ_WRITE_FORCE.getPermission())||ss.equals(HouseRightEnum.READ_WRITE.getPermission())) saved.add(command);
                 }
             } else if(type.name().equals("CREATE")){
 
@@ -70,7 +73,7 @@ public class MyPreRecieveHook implements PreReceiveHook {
             } else if (type.equals(ReceiveCommand.Type.UPDATE_NONFASTFORWARD)) {
                 if(currPer.equals(HouseRightEnum.READ_WRITE_FORCE.getPermission())) saved.add(command);
             } else  {
-                if(currPer.equals(HouseRightEnum.READ_WRITE.getPermission())) saved.add(command);
+                if(currPer.equals(HouseRightEnum.READ_WRITE_FORCE.getPermission())||currPer.equals(HouseRightEnum.READ_WRITE.getPermission())) saved.add(command);
             }
         }
         for(ReceiveCommand command:collection){
