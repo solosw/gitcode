@@ -89,6 +89,11 @@ public class GitSSHServerConfig implements ApplicationContextAware {
         String admin;
         String password;
         String encodedKey;
-        Integer serverPort;
+        Integer httpPort;
+        Integer httpsPort;
+        String keystoreFile;
+        String keystorePassword;
+        String keystoreType;
+        String keyAlias;
     }
 }

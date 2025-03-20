@@ -22,4 +22,9 @@ local:
     dir: /Users/solosw/Desktop/CodeLab/area/test/
     path: /data
 server:
-  port: 8080
+  port: 8090
+  ssl:
+    key-store: ./keystore.p12
+    key-store-password: solosw
+    key-store-type: JKS
+
