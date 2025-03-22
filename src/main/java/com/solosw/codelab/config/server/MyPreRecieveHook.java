@@ -5,6 +5,7 @@ import com.solosw.codelab.entity.po.House;
 import com.solosw.codelab.entity.po.HouseRight;
 import com.solosw.codelab.entity.po.Users;
 import com.solosw.codelab.enums.HouseRightEnum;
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.transport.PreReceiveHook;
 import org.eclipse.jgit.transport.ReceiveCommand;
 import org.eclipse.jgit.transport.ReceivePack;
@@ -29,6 +30,7 @@ public class MyPreRecieveHook implements PreReceiveHook {
     @Override
     public void onPreReceive(ReceivePack receivePack, Collection<ReceiveCommand> collection) {
         if(house.getCreatorId().equals(users.getId())) return;
+
         List<HouseRight.Right> rightList= JSONArray.parseArray(houseRight.getRights(),HouseRight.Right.class);
         Map<String,String> per=new HashMap<>();
         for(HouseRight.Right right:rightList){
@@ -76,10 +78,13 @@ public class MyPreRecieveHook implements PreReceiveHook {
                 if(currPer.equals(HouseRightEnum.READ_WRITE_FORCE.getPermission())||currPer.equals(HouseRightEnum.READ_WRITE.getPermission())) saved.add(command);
             }
         }
-        for(ReceiveCommand command:collection){
-            if(saved.contains(command)) continue;;
-            collection.remove(command);
-        }
 
+        collection.removeIf(command -> {
+            if(!saved.contains(command)){
+                command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON);
+                return true;
+            }
+          return  false;
+        });
     }
 }
