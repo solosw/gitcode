@@ -6,7 +6,7 @@
     "admin": "git",
     "password": "123456",
     "encodedKey": "GPxXgWCdPqGe0AUg3bKsMM7ZLp9UfGBIKpSZl_UMnAo",
-    "httpPort": 8070,
+    "httpPort": 8080,
     "httpsPort": 8090,
     "keystoreFile": "./keystore.p12",
     "keystorePassword": "solosw",

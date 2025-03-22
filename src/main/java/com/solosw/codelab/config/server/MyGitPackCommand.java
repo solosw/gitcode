@@ -24,10 +24,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MyGitPackCommand extends AbstractGitCommand {
     String rootPath;
@@ -84,41 +81,43 @@ public class MyGitPackCommand extends AbstractGitCommand {
             if ("git-upload-pack".equals(subCommand)) {
 
                 UploadPack uploadPack = new UploadPack(db);
-                uploadPack.setRefFilter((ref)->{
-                    Map<String,Ref> saved=new HashMap<>();
-                    for(String bran:ref.keySet()){
-                        String[] strings=bran.split("/");
-                        if(strings.length!=3) {
-                            saved.put(bran, ref.get(bran));
-                            continue;
-                        }
-                        String branch=strings[2];
-                        for(HouseRight.Right right:rightList){
-                            if(right.getOwner()&& !right.getRight().equals(HouseRightEnum.NONE.getPermission())) {
-                                return ref;
-
+                if(house.getKind().equals(1)){
+                    uploadPack.setRefFilter((ref)->{
+                        Map<String,Ref> saved=new HashMap<>();
+                        for(String bran:ref.keySet()){
+                            String[] strings=bran.split("/");
+                            if(strings.length!=3) {
+                                saved.put(bran, ref.get(bran));
+                                continue;
                             }
-                            if(branch.equals(right.getBranch())){
-                                if(!right.getRight().equals(HouseRightEnum.NONE.getPermission())){
-                                     saved.put(bran, ref.get(bran));
-                                     break;
+                            String branch=strings[2];
+                            for(HouseRight.Right right:rightList){
+                                if(right.getOwner()&& !right.getRight().equals(HouseRightEnum.NONE.getPermission())) {
+                                    return ref;
+
+                                }
+                                if(branch.equals(right.getBranch())){
+                                    if(!right.getRight().equals(HouseRightEnum.NONE.getPermission())){
+                                        saved.put(bran, ref.get(bran));
+                                        break;
+                                    }
                                 }
                             }
                         }
-                    }
-                    for(String r:ref.keySet()) {
-                        if(!saved.containsKey(r)){
-                            ref.remove(r);
+                        for(String r:ref.keySet()) {
+                            if(!saved.containsKey(r)){
+                                ref.remove(r);
+                            }
                         }
-                    }
-                    return ref;
-                });
+                        return ref;
+                    });
+                }
 
                 Environment environment = this.getEnvironment();
                 Map<String, String> envVars = environment.getEnv();
                 String protocol = MapEntryUtils.isEmpty(envVars) ? null : (String)envVars.get("GIT_PROTOCOL");
                 if (GenericUtils.isNotBlank(protocol)) {
-                    //uploadPack.setExtraParameters(Collections.singleton(protocol));
+                    uploadPack.setExtraParameters(Collections.singleton(protocol));
                 }
                 uploadPack.upload(this.getInputStream(), this.getOutputStream(), this.getErrorStream());
             } else {
@@ -128,36 +127,6 @@ public class MyGitPackCommand extends AbstractGitCommand {
                 ReceivePack receivePack=new ReceivePack(db);
                 if(rightList.isEmpty()) return;
                 receivePack.setPreReceiveHook(new MyPreRecieveHook(house,users,houseRight,gitPersmionHelper));
-                /*
-                receivePack.setRefFilter((ref)->{
-
-                    Map<String,Ref> saved=new HashMap<>();
-                    for(String bran:ref.keySet()){
-                        String[] strings=bran.split("/");
-                        if(strings.length!=3) {
-                            saved.put(bran, ref.get(bran));
-                            continue;
-                        }
-                        String branch=strings[2];
-                        for(HouseRight.Right right:rightList){
-                            if(right.getOwner()&& !right.getRight().equals(HouseRightEnum.NONE.getPermission())
-                                    && !right.getRight().equals(HouseRightEnum.READ_ONLY.getPermission())) return ref;
-                            if(branch.equals(right.getBranch())){
-                                if(!right.getRight().equals(HouseRightEnum.NONE.getPermission())&&!right.getRight().equals(HouseRightEnum.READ_ONLY.getPermission())){
-                                    saved.put(bran,ref.get(bran));
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    for(String bran:ref.keySet()){
-                        if(saved.containsKey(bran)) continue;
-                        ref.remove(bran);
-                    }
-                    return ref;
-                });
-                *
-                 */
                 receivePack.receive(this.getInputStream(), this.getOutputStream(), this.getErrorStream());
             }
 

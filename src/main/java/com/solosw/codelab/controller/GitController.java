@@ -75,12 +75,12 @@ public class GitController {
         String realPath=GitoliteUtil.getRepositoryPath( house.getPath());
         List<CodeBo> codeBos=new ArrayList<>();
         List<String> branches= GitServerUtil.getAllBranches(realPath);
-        if(branches.isEmpty()) return  ResponseBo.getFail(null,"读取分支错误",500);
-        List<GitServerUtil.FileInfo> fileInfoList;
+
+        List<GitServerUtil.FileInfo> fileInfoList=new ArrayList<>();
         if(branches.contains("master")){
-            fileInfoList = GitServerUtil.lsTree(realPath, "master", false);
-        }else {
-            fileInfoList = GitServerUtil.lsTree(realPath, branches.get(0), false);
+            fileInfoList = GitServerUtil.lsTree(realPath, "master");
+        }else if(!branches.isEmpty()){
+            fileInfoList = GitServerUtil.lsTree(realPath, branches.get(0));
         }
 
         for(GitServerUtil.FileInfo fileInfo:fileInfoList){

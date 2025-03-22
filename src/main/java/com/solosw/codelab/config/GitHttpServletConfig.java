@@ -1,40 +1,27 @@
 package com.solosw.codelab.config;
 
 import com.alibaba.fastjson.JSON;
-import com.fasterxml.jackson.core.exc.StreamReadException;
-import com.fasterxml.jackson.databind.DatabindException;
+import com.alibaba.fastjson.JSONArray;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.solosw.codelab.config.server.AESGCMEncryptionWithCustomKey;
-import com.solosw.codelab.config.server.CoreTestSupportUtils;
-import com.solosw.codelab.config.server.GitPersmionHelper;
+import com.solosw.codelab.config.server.*;
 import com.solosw.codelab.entity.po.House;
 import com.solosw.codelab.entity.po.HouseRight;
 import com.solosw.codelab.entity.po.Users;
 import com.solosw.codelab.service.UsersService;
-import com.solosw.codelab.utils.GitoliteUtil;
-import jakarta.annotation.PostConstruct;
 import org.apache.catalina.connector.Connector;
-import org.apache.sshd.server.SshServer;
 import org.apache.tomcat.util.net.SSLHostConfig;
-import org.apache.tomcat.util.net.SSLHostConfigCertificate;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.http.server.GitServlet;
-import org.eclipse.jgit.http.server.resolver.DefaultReceivePackFactory;
-import org.eclipse.jgit.http.server.resolver.DefaultUploadPackFactory;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import jakarta.servlet.Servlet;
 
 import javax.crypto.spec.SecretKeySpec;
-import javax.management.RuntimeErrorException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -52,33 +39,14 @@ public class GitHttpServletConfig  {
     static {
         Init();
     }
-    private Connector createHttpsConnector() {
-        File file = new File("./config.json");
-        if(!Files.exists(file.toPath())) throw new Error("配置文件不存在");
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            GitSSHServerConfig.Config config = mapper.readValue(file, GitSSHServerConfig.Config.class);
-            Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
-            connector.setScheme("https");
-            connector.setPort(config.getHttpsPort());
-            connector.setSecure(false);
-            connector.setProperty("SSLEnabled", "true");
-            connector.setProperty("keystoreFile", config.keystoreFile);
-            connector.setProperty("keystorePass", config.keystorePassword);
-            connector.setProperty("keystoreType", config.keystoreType);
-            SSLHostConfig sslHostConfig = new SSLHostConfig();
-            sslHostConfig.setCaCertificateFile(config.keystoreFile);
-            sslHostConfig.setTruststoreType(config.keystoreType);
-            sslHostConfig.setTruststorePassword(config.keystorePassword);
-            connector.addSslHostConfig(sslHostConfig);
-            return connector;
-        }catch (Exception e){
-            return null;
-        }
 
-    }
     @Autowired
     GitPersmionHelper gitPersmionHelper;
+    @Autowired
+    UsersService usersService;
+
+    @Autowired
+    UserContext userContext;
     static  SecretKeySpec secretKeySpec;
     public static String getClonePath(Long useId,Long houseId){
 
@@ -133,30 +101,39 @@ public class GitHttpServletConfig  {
 
         // 初始化 GitServlet
         GitServlet gitServlet = new GitServlet();
-
-        // 配置仓库解析逻辑
         gitServlet.setRepositoryResolver((request, name) -> {
             String path = request.getPathInfo(); // 如 "/repo1/git-upload-pack"
             try {
                 Map<String,Integer> mp=getMap(name);
                 Integer houseId=mp.get("houseId");
                 Long userId= Long.valueOf(mp.get("userId"));
-                HouseRight  houseRight=gitPersmionHelper.getHouseRightByUserAndHouse(userId, Long.valueOf(houseId));
-                House house=gitPersmionHelper.getHouse(Long.valueOf(houseId));
-                String repoName = "/"+house.getPath(); // 提取仓库名称
+                Users users=usersService.selectById(userId);
+                Users inu= userContext.getUser();
+                if(inu==null)  throw new RepositoryNotFoundException("权限不足: ");
+                if(!inu.getName().equals(users.getName())) throw new RepositoryNotFoundException("输入有误");
+               HouseRight   houseRight=(gitPersmionHelper.getHouseRightByUserAndHouse(userId, Long.valueOf(houseId)));
+               House house =(gitPersmionHelper.getHouse(Long.valueOf(houseId)));
+                String repoName = "/"+ house.getPath(); // 提取仓库名称
                 String service=request.getParameter("service");
                 if("git-upload-pack".equals(service)){
-                   if(houseRight==null)  throw new RepositoryNotFoundException("仓库不存在: " + repoName);
-
+                   if(houseRight ==null)  throw new RepositoryNotFoundException("仓库不存在: " + repoName);
+                   if(house.getKind().equals(1)&&!userId.equals(house.getCreatorId())){
+                       if(houseRight ==null) throw new RepositoryNotFoundException("权限不足: " + repoName);
+                       List<HouseRight.Right> list= JSONArray.parseArray(houseRight.getRights(),HouseRight.Right.class);
+                       if(list==null||list.isEmpty())  throw new RepositoryNotFoundException("权限不足: " + repoName);
+                   }
                 }
 
-
+                request.setAttribute("my_house",house);
+                request.setAttribute("house_right",houseRight);
+                request.setAttribute("my_users",users);
                 File repoDir = new File(REPOS_ROOT_DIR+repoName + ".git");
                 if (!repoDir.exists()) {
                     throw new RepositoryNotFoundException("仓库不存在: " + repoName);
                 }
 
                 try {
+
                     return new FileRepositoryBuilder()
                             .setGitDir(repoDir)
                             .build();
@@ -170,8 +147,9 @@ public class GitHttpServletConfig  {
         });
 
         // 配置 Git 操作工厂
-        gitServlet.setReceivePackFactory(new DefaultReceivePackFactory());
-        gitServlet.setUploadPackFactory(new DefaultUploadPackFactory());
+        gitServlet.setReceivePackFactory(new MyReceivePackFactory(gitPersmionHelper));
+        gitServlet.setUploadPackFactory(new MyUploadPackFactory());
+
 
         // 注册 Servlet 并映射到 /git/*
         return new ServletRegistrationBean<>(gitServlet, "/server/*");

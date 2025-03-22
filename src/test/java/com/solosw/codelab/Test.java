@@ -5,18 +5,14 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.http.server.GitServlet;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.ReceivePack;
 import org.eclipse.jgit.transport.UploadPack;
 
-import javax.servlet.Servlet;
-import javax.servlet.http.HttpServletResponse;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
@@ -68,13 +64,6 @@ public class Test {
         gitServlet.setUploadPackFactory((req, repo) -> new UploadPack(repo));
         gitServlet.setReceivePackFactory((req, repo) -> new ReceivePack(repo));
         // 配置 Jetty 服务器
-        Server server = new Server(9090);
-        ServletContextHandler context = new ServletContextHandler();
 
-        context.addServlet(new ServletHolder((Servlet) gitServlet), "/git/*"); // 限定路径前缀
-        server.setHandler(context);
-
-
-        server.start();
     }
 }

@@ -28,7 +28,7 @@ public class MyPreRecieveHook implements PreReceiveHook {
 
     @Override
     public void onPreReceive(ReceivePack receivePack, Collection<ReceiveCommand> collection) {
-
+        if(house.getCreatorId().equals(users.getId())) return;
         List<HouseRight.Right> rightList= JSONArray.parseArray(houseRight.getRights(),HouseRight.Right.class);
         Map<String,String> per=new HashMap<>();
         for(HouseRight.Right right:rightList){

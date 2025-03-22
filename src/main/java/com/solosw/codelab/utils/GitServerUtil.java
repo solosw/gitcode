@@ -261,7 +261,6 @@ public class GitServerUtil {
                     fileInfoList.add(fileInfo);
                 }
             }
-
             treeWalk.close();
             repository.close();
             return fileInfoList;

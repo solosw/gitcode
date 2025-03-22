@@ -55,12 +55,9 @@ git diff fatherHash currentHash
 
 
 
-su - umgk
-git clone https://github.com/sitaramc/gitolite
-mkdir $HOME/bin
-gitolite/install -to $HOME/bin
-ssh-keygen -t rsa
-mv .ssh/id_rsa.pub admin.pub
-$HOME/bin/gitolite setup -pk admin.pub
-git clone git@127.0.0.1:gitolite-admin
+## 配置
+ssh-keygen -t ecdsa -b 521 -f /root/hostkey.pem
+
+
+
 
