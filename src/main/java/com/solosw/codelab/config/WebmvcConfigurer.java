@@ -1,5 +1,6 @@
 package com.solosw.codelab.config;
 
+import com.solosw.codelab.Inspectors.JwtInterceptor;
 import com.solosw.codelab.config.server.CustomAuthenticationProvider;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,15 @@ public class WebmvcConfigurer implements WebMvcConfigurer {
 
     @Value("${local.file.path}")
     private String localFilePath;
+    @Autowired
+    JwtInterceptor jwtInterceptor;
 
-
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(jwtInterceptor)
+                .addPathPatterns("/**") // 拦截所有以 /api 开头的请求
+                .excludePathPatterns("/back/user/login"); // 排除登录接口
+    }
 
     @Override
     public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {

@@ -19,6 +19,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -407,8 +409,32 @@ public class GitServerUtil {
             e.printStackTrace();
         }
     }
-
-
+    private static void deleteDirectory(Path path) throws IOException {
+        if (Files.exists(path)) {
+            Files.walk(path) // 遍历目录树
+                    .sorted((p1, p2) -> -p1.compareTo(p2)) // 按逆序排序（先删除子文件/目录）
+                    .forEach(p -> {
+                        try {
+                            System.out.println("Deleting: " + p);
+                            Files.delete(p); // 删除文件或空目录
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed to delete: " + p, e);
+                        }
+                    });
+        }
+    }
+    public static void deleteRep(String path){
+        if(Files.exists(Path.of(path))){
+            Thread t=new Thread(()->{
+                try {
+                    deleteDirectory(Path.of(path));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            t.start();
+        }
+    }
     public static void main(String[] args) throws Exception {
      //  System.out.println( getAllBranches("C:\\Users\\solosw\\Desktop\\CodeLab\\test\\test.git"));
       //System.out.println( getAllTags("C:\\Users\\solosw\\Desktop\\CodeLab\\test\\test.git"));

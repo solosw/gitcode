@@ -1,6 +1,6 @@
 <template>
-  <el-tabs type="card" class="demo-tabs" @tab-change="changeTab">
-    <el-tab-pane>
+  <el-tabs type="card" class="demo-tabs" @tab-change="changeTab" v-model="lab">
+    <el-tab-pane label="code" name="project">
       <template #label>
         <span class="custom-tabs-label">
           <el-icon><document /></el-icon>
@@ -8,7 +8,7 @@
         </span>
       </template>
     </el-tab-pane>
-    <el-tab-pane label="Config">
+    <el-tab-pane label="Issues" name="issues">
       <template #label>
         <span class="custom-tabs-label">
           <el-icon><collection /></el-icon>
@@ -16,23 +16,23 @@
         </span>
     </template>
     </el-tab-pane>
-    <el-tab-pane label="Role">
+    <el-tab-pane label="Wiki" name="wiki">
       <template #label>
-        <span class="custom-tabs-label">
+        <span class="custom-tabs-label" >
           <el-icon><notebook /></el-icon>
           <span>Wiki</span>
         </span>
       </template>
     </el-tab-pane>
-    <el-tab-pane label="Task">
+    <el-tab-pane label="History" name="history">
       <template #label>
-        <span class="custom-tabs-label">
+        <span class="custom-tabs-label" >
           <el-icon><Timer /></el-icon>
           <span>History</span>
         </span>
       </template>
     </el-tab-pane>
-    <el-tab-pane label="Task">
+    <el-tab-pane label="Requests" name="pull">
       <template #label>
         <span class="custom-tabs-label">
           <el-icon><Brush /></el-icon>
@@ -40,7 +40,7 @@
         </span>
       </template>
     </el-tab-pane>
-    <el-tab-pane label="Task" v-if="house.creatorId==user.id">
+    <el-tab-pane label="Setting" v-if="house.creatorId==user.id" name="houseSetting">
       <template #label>
         <span class="custom-tabs-label">
           <el-icon><setting /></el-icon>
@@ -94,7 +94,9 @@ import axios from "axios";
 export default {
   data(){
     return{
+        lab:'project',
         data:["project","issues",'wiki','history','pull','houseSetting'],
+        labels:["code","Issues",'Wiki','History','Requests','Setting'],
         user:JSON.parse(localStorage.getItem("user")).user,
         house:{}
     }
@@ -103,7 +105,11 @@ export default {
     changeTab(value){
       const params = new URLSearchParams(window.location.search);
       var id = params.get('id'); // 假设你要获取名为 'param1' 的参数
-      location.href="/"+this.data[value]+"?id="+id
+      this.lab=value
+      this.$router.push({
+        path: `/${value}`,
+        query: { id: id },
+      });
     }
   },
   created() {

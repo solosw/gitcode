@@ -1,6 +1,7 @@
 package com.solosw.codelab.controller;
 
 import com.solosw.codelab.config.GitHttpServletConfig;
+import com.solosw.codelab.controller.base.BaseController;
 import com.solosw.codelab.entity.bo.CodeBo;
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.House;
@@ -19,7 +20,7 @@ import java.util.*;
 @RequestMapping("/back/git")
 @Slf4j
 @RestController
-public class GitController {
+public class GitController extends BaseController {
     @Resource
     HouseService houseService;
     @Autowired

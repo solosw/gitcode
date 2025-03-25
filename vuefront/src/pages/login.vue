@@ -53,7 +53,7 @@ export default {
         if(res.data.status==200){
 
           localStorage.setItem("user",JSON.stringify(res.data.data))
-          console.log(res.data.data)
+          localStorage.setItem("token",res.data.data.token)
           location.href="/index"
         }else
         {

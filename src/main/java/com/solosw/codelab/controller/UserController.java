@@ -1,5 +1,6 @@
 package com.solosw.codelab.controller;
 
+import com.solosw.codelab.controller.base.BaseController;
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.Origization;
 import com.solosw.codelab.entity.po.UserInfo;
@@ -7,6 +8,7 @@ import com.solosw.codelab.entity.po.Users;
 import com.solosw.codelab.service.OrigizationService;
 import com.solosw.codelab.service.UserInfoService;
 import com.solosw.codelab.service.UsersService;
+import com.solosw.codelab.utils.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.h2.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +21,7 @@ import java.util.Objects;
 @RestController
 @Slf4j
 @RequestMapping("/back/user")
-public class UserController {
+public class UserController extends BaseController {
 
     @Autowired
     UsersService usersService;
@@ -36,6 +38,7 @@ public class UserController {
         if(users==null) return ResponseBo.getFail(null,"账户输入错误",500);
         Map<String, Object> map=new HashMap<>();
         map.put("user",users);
+        map.put("token", JwtUtil.generateToken(users));
         return ResponseBo.getSuccess(map);
     }
     @PostMapping("/createOrganization")

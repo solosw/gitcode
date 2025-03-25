@@ -1,5 +1,6 @@
 package com.solosw.codelab.controller;
 
+import com.solosw.codelab.controller.base.BaseController;
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.Users;
 import com.solosw.codelab.entity.vo.InitEnvDataVo;
@@ -21,7 +22,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping("/back")
-public class ServerEnvController {
+public class ServerEnvController extends BaseController {
     @Autowired
     UsersService usersService;
     @GetMapping("/getEnvStatus")

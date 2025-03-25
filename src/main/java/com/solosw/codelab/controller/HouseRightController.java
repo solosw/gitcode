@@ -1,6 +1,7 @@
 package com.solosw.codelab.controller;
 
 import com.alibaba.fastjson.JSONArray;
+import com.solosw.codelab.controller.base.BaseController;
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.House;
 import com.solosw.codelab.entity.po.HouseRight;
@@ -10,6 +11,7 @@ import com.solosw.codelab.service.HouseRightService;
 import com.solosw.codelab.service.HouseService;
 import com.solosw.codelab.service.UsersService;
 import lombok.extern.slf4j.Slf4j;
+import org.h2.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +23,7 @@ import java.util.Map;
 @RequestMapping("/back/right")
 @Slf4j
 @RestController
-public class HouseRightController {
+public class HouseRightController extends BaseController {
 
     @Autowired
     HouseService houseService;
@@ -111,4 +113,25 @@ public class HouseRightController {
         houseRightService.deleteHouseByHouseIdAndUserId(houseId,userId);
         return ResponseBo.getSuccess(null);
     }
+    @PostMapping("/getUserDetail/{houseId}/{userId}")
+    public ResponseBo getUserDetail(@PathVariable Long houseId,@PathVariable Long userId){
+
+        HouseRight houseRights=houseRightService.getHouseRightByUserAndHouse(userId,houseId);
+        return ResponseBo.getSuccess(houseRights);
+    }
+    @PostMapping("/changeRight")
+    public ResponseBo changeRight(@RequestBody Map<String,String> mp){
+
+        Long id= Long.valueOf(mp.get("id"));
+        String rights=mp.get("rights");
+        if(StringUtils.isNullOrEmpty(rights)){
+            houseRightService.deleteById(id);
+            return ResponseBo.getSuccess(null);
+        }
+        HouseRight right= houseRightService.selectById(id);
+        right.setRights(rights);
+        houseRightService.updateById(right);
+        return ResponseBo.getSuccess(null);
+    }
+
 }

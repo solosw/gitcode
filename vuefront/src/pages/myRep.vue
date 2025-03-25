@@ -42,7 +42,10 @@ export default {
       location.href="/project?id="+id;
     },
     changeType(id,type){
-      axios.post("/house/changeType/"+id+"/"+type).then((res)=>{
+      axios.post("/house/changeType",{
+        id:id,
+        kind:type,
+      }).then((res)=>{
         if(res.data.status==200){
             this.fetch()
         }else {

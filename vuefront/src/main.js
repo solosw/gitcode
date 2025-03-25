@@ -54,7 +54,11 @@ axios.loadData = async function (url) {
     return resp.data;
 };
 axios.interceptors.request.use(function (config) {
-    // 检查请求是否为跨站点请求
+    let token = localStorage.getItem('token'); // 从本地存储中获取JWT
+    if(!token) token="none"
+    if (token) {
+        config.headers.Authorization = `${token}`; // 设置请求头
+    }
     return config;
 }, function (error) {
     return Promise.reject(error);

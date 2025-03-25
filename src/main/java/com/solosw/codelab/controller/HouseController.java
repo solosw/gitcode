@@ -1,6 +1,7 @@
 package com.solosw.codelab.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.solosw.codelab.controller.base.BaseController;
 import com.solosw.codelab.entity.bo.CodeBo;
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.House;
@@ -13,7 +14,9 @@ import com.solosw.codelab.service.UsersService;
 import com.solosw.codelab.utils.GitServerUtil;
 import com.solosw.codelab.utils.GitoliteUtil;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.h2.util.StringUtils;
 import org.h2.util.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +26,7 @@ import java.util.*;
 @RequestMapping("/back/house")
 @Slf4j
 @RestController
-public class HouseController {
+public class HouseController extends BaseController {
     final  String publicHouse="@all";
     @Resource
     HouseService houseService;
@@ -107,35 +110,43 @@ public class HouseController {
 
 
 
-    @PostMapping("/changeType/{id}/{kind}")
-    public ResponseBo changeType(@PathVariable Long id,@PathVariable Integer kind){
+    @PostMapping("/changeType")
+    public ResponseBo changeType(@RequestBody Map<String,String> mp){
 
+        Long id= Long.valueOf(mp.get("id"));
+        Integer kind= Integer.valueOf(mp.get("kind"));
+        String name=mp.get("name");
+        String des=mp.get("des");
         House house=houseService.selectById(id);
+        Integer oriKind=house.getKind();
         house.setKind(kind);
+        if(!StringUtils.isNullOrEmpty(name)){
+            house.setName(name);
+        }
+        if(!StringUtils.isNullOrEmpty(des)){
+            house.setDescription(des);
+        }
         houseService.updateById(house);
-        Users users=usersService.selectById(house.getCreatorId());
-        HouseRight.Right right=new HouseRight.Right();
-        HouseRight houseRight=new HouseRight();
-        houseRight.setHouseId(house.getId());
-        if(house.getKind()==0){// 公开为-1
+        if(!oriKind.equals(kind)){
+            Users users=usersService.selectById(house.getCreatorId());
+            HouseRight.Right right=new HouseRight.Right();
+            HouseRight houseRight=new HouseRight();
+            houseRight.setHouseId(house.getId());
+            houseRight.setRights(JSON.toJSONString(List.of(right)));
+            if(kind.equals(0)){
 
+                houseRightService.deleteHouseByHouseIdAndUserId(house.getId(), users.getId());
+                houseRight.setUserId(-1L);
+                right.setOwner(true).setRight(HouseRightEnum.READ_WRITE_FORCE.getPermission());
+            } else if (kind.equals(1)) {
+                houseRightService.deleteHouseByHouseIdAndUserId(house.getId(), -1L);
+                houseRight.setUserId(users.getId());
+                right.setOwner(true).setRight(HouseRightEnum.READ_WRITE_FORCE.getPermission());
+            }
+            houseRight.setRights(JSON.toJSONString(List.of(right)));
+            houseRightService.insert(houseRight);
         }
-        else {
 
-        }
-        houseRight.setRights(JSON.toJSONString(List.of(right)));
-        if(kind.equals(0)){
-
-            houseRightService.deleteHouseByHouseIdAndUserId(house.getId(), users.getId());
-            houseRight.setUserId(-1L);
-            right.setOwner(true).setRight(HouseRightEnum.READ_WRITE_FORCE.getPermission());
-        } else if (kind.equals(1)) {
-            houseRightService.deleteHouseByHouseIdAndUserId(house.getId(), -1L);
-            houseRight.setUserId(users.getId());
-            right.setOwner(true).setRight(HouseRightEnum.READ_WRITE_FORCE.getPermission());
-        }
-        houseRight.setRights(JSON.toJSONString(List.of(right)));
-        houseRightService.insert(houseRight);
         return ResponseBo.getSuccess(null);
     }
 
@@ -164,6 +175,20 @@ public class HouseController {
         List<String> branches= GitServerUtil.getAllBranches(realPath);
         if(branches.isEmpty()) return  ResponseBo.getFail(null,"读取分支错误",500);
         return ResponseBo.getSuccess(branches);
+    }
+
+
+    @PostMapping("/deleteRep/{houseId}")
+    public ResponseBo deleteRep(@PathVariable Long houseId, HttpServletRequest request){
+        House  house=houseService.selectById(houseId);
+        Users users=getCurrentUser(request);
+        if(house==null||users==null) return ResponseBo.getFail(null,"权限不足",500);
+        if(house.getCreatorId().equals(users.getId())){
+            houseService.deleteById(houseId);
+            GitServerUtil.deleteRep(GitoliteUtil.getRepositoryPath(house.getPath()));
+            return ResponseBo.getSuccess(null);
+        }
+        return ResponseBo.getFail(null,"权限不足",500);
     }
 
 

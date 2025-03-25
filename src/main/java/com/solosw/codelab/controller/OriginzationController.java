@@ -1,5 +1,6 @@
 package com.solosw.codelab.controller;
 
+import com.solosw.codelab.controller.base.BaseController;
 import com.solosw.codelab.entity.bo.OrigationBo;
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.House;
@@ -21,7 +22,7 @@ import java.util.List;
 @RequestMapping("/back/ori")
 @Slf4j
 @RestController
-public class OriginzationController {
+public class OriginzationController extends BaseController {
 
     @Autowired
     OrigizationService origizationService;

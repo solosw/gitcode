@@ -75,7 +75,19 @@
           <div slot="header">
             <span>分支管理</span>
           </div>
-
+          <el-table :data="branches" style="width: 100%">
+            <el-table-column  label="分支名称" width="200">
+              <template #default="scope">
+                  <div>{{scope.row}}</div>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="200">
+              <template #default="scope">
+                <el-button size="small" @click="protectBranch(scope.row)">保护分支</el-button>
+                <el-button size="small" type="danger" @click="deleteBranch(scope.row)">删除分支</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
         </el-card>
 
         <!-- 协作者管理 -->
@@ -114,19 +126,12 @@
           </div>
 
           <div class="danger-item">
-            <h4>Delete Repository</h4>
+            <el-button type="danger" @click="deleteRepository">Delete Repository</el-button>
             <p>This action cannot be undone...</p>
             <el-popconfirm
                 title="确认删除仓库吗？"
                 @confirm="deleteRepository"
             >
-              <el-button
-                  slot="reference"
-                  type="danger"
-                  :disabled="!isOwner"
-              >
-                删除
-              </el-button>
             </el-popconfirm>
           </div>
         </el-card>
@@ -169,7 +174,27 @@
 
 
   <el-dialog v-model="infovis">
-
+    <el-table :data="showHouseRight.rights" style="width: 100%">
+      <el-table-column prop="branch" label="分支" width="180"></el-table-column>
+      <el-table-column prop="right" label="权限" width="180"></el-table-column>
+      <el-table-column label="操作" width="180">
+        <template #default="scope">
+            <el-button @click="deleteRights(scope.row)" type="warning">删除</el-button>
+            <el-button @click="changeRights(scope.row)" type="primary">修改</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </el-dialog>
+  <el-dialog title="修改权限" v-model= "rigtVis" width="30%">
+    <el-radio-group v-model="selectedRight.right">
+      <el-radio label="RW+">RW+</el-radio>
+      <el-radio label="RW">RW</el-radio>
+      <el-radio label="R">R</el-radio>
+    </el-radio-group>
+    <div slot="footer" class="dialog-footer">
+        <el-button @click="rigtVis = false">取消</el-button>
+        <el-button type="primary" @click="confirmChange">确定</el-button>
+    </div>
   </el-dialog>
 </template>
 
@@ -200,7 +225,10 @@ export default {
   },
   data() {
     return {
+      rigtVis:false,
+      selectedRight:{},
       infovis:false,
+      showHouseRight:{},
       setting:{
           right:"R",
           username:"",
@@ -223,9 +251,76 @@ export default {
     }
   },
   methods: {
+    deleteBranch(branchName) {
+      this.$confirm(`确定要删除分支 "${branchName}" 吗？`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+          .then(() => {
+            this.branches = this.branches.filter((branch) => branch !== branchName);
+            this.$message.success(`已删除`);
+            // TODO: 实现删除分支的后端逻辑
+          })
+          .catch(() => {
+            this.$message.info("已取消删除");
+          });
+    },
+    protectBranch(branchName) {
+      this.$confirm(`确定要保护分支 "${branchName}" 吗？`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "success",
+      })
+          .then(() => {
+            this.branches = this.branches.filter((branch) => branch.name !== branchName);
+            this.$message.success(`成功`);
+            // TODO: 实现删除分支的后端逻辑
+          })
+          .catch(() => {
+            this.$message.info("成功");
+          });
+    },
+
+    confirmChange(){
+        axios.post("/right/changeRight",
+          {id:this.showHouseRight.id,rights:JSON.stringify(this.showHouseRight.rights)}).then((res)=>{
+        if(res.data.status==200){
+          location.reload()
+        }else {
+          ElMessage.error(res.data.message)
+        }
+      })
+    },
+    deleteRights(right){
+        this.showHouseRight.rights=this.showHouseRight.rights.filter(
+            (data) => data !== right
+        );
+        axios.post("/right/changeRight",
+            {id:this.showHouseRight.id,rights:JSON.stringify(this.showHouseRight.rights)}).then((res)=>{
+              if(res.data.status==200){
+                  location.reload()
+              }else {
+                ElMessage.error(res.data.message)
+              }
+        })
+    },
+    changeRights(right){
+        this.rigtVis=true
+        this.selectedRight=right
+    },
     showCollaborator(user){
         this.infovis=true
-
+        const params = new URLSearchParams(window.location.search);
+        var id = params.get('id'); // 假设你要获取名为 'param1' 的参数
+        axios.post("/right/getUserDetail/"+id+"/"+user.id).then((res)=>{
+            if(res.data.status==200){
+              this.showHouseRight=res.data.data
+              this.showHouseRight.rights=JSON.parse(this.showHouseRight.rights)
+            }else{
+              ElMessage.error(res.data.message)
+            }
+        })
     },
     sureCollaborator(){
       axios.post("/right/addUser",this.setting).then((res)=>{
@@ -242,10 +337,25 @@ export default {
     },
     saveSettings() {
       this.saving = true;
-      setTimeout(() => {
-        this.saving = false;
-        this.$message.success('设置保存成功');
-      }, 1000);
+      axios.post("/house/changeType",{
+        id:this.house.id,
+        kind:this.house.kind,
+        name:this.house.name,
+        des:this.house.description
+      }).then((res)=>{
+        if(res.data.status==200){
+          setTimeout(() => {
+            this.saving = false;
+            this.$message.success('设置保存成功');
+            location.reload()
+          }, 1000);
+
+        }else {
+          ElMessage.error(res.data.message)
+        }
+      })
+
+
     },
     addCollaborator() {
       this.vis=true
@@ -273,7 +383,18 @@ export default {
         cancelButtonText: '取消',
         type: 'error'
       }).then(() => {
-        this.$message.success('仓库删除成功');
+        const params = new URLSearchParams(window.location.search);
+        var id = params.get('id'); // 假设你要获取名为 'param1' 的参数
+
+          axios.post("/house/deleteRep/"+id).then((res)=>{
+                if(res.data.status==200){
+                  ElMessage.success("删除成功")
+                  location.href="/"
+                }else {
+                  ElMessage.error(res.data.message)
+                }
+
+          })
       });
     }
   }

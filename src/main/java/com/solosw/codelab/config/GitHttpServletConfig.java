@@ -116,7 +116,6 @@ public class GitHttpServletConfig  {
                 String repoName = "/"+ house.getPath(); // 提取仓库名称
                 String service=request.getParameter("service");
                 if("git-upload-pack".equals(service)){
-                   if(houseRight ==null)  throw new RepositoryNotFoundException("仓库不存在: " + repoName);
                    if(house.getKind().equals(1)&&!userId.equals(house.getCreatorId())){
                        if(houseRight ==null) throw new RepositoryNotFoundException("权限不足: " + repoName);
                        List<HouseRight.Right> list= JSONArray.parseArray(houseRight.getRights(),HouseRight.Right.class);

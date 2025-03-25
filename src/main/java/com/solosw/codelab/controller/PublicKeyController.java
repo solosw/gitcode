@@ -1,5 +1,6 @@
 package com.solosw.codelab.controller;
 
+import com.solosw.codelab.controller.base.BaseController;
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.PublicKey;
 import com.solosw.codelab.entity.po.Users;
@@ -16,7 +17,7 @@ import java.util.Map;
 @RequestMapping("/back/ssh")
 @Slf4j
 @RestController
-public class PublicKeyController {
+public class PublicKeyController extends BaseController {
 
     @Autowired
     PublicKeyService publicKeyService;
@@ -46,4 +47,7 @@ public class PublicKeyController {
         publicKeyService.deleteById(keyId);
         return ResponseBo.getSuccess(null);
     }
+
+
+
 }
