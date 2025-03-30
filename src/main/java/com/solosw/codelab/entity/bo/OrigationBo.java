@@ -22,6 +22,8 @@ public class OrigationBo {
     private LocalDateTime updateTime;
     private Integer role; //0 创建者
     List<Users> members;
+    String av;
+
     public OrigationBo(Origization origization){
         id=origization.getId();
         name=origization.getName();
@@ -29,6 +31,7 @@ public class OrigationBo {
         description=origization.getDescription();
         createTime=origization.getCreateTime();
         updateTime=origization.getUpdateTime();
+        av=origization.getAv();
     }
 
 }

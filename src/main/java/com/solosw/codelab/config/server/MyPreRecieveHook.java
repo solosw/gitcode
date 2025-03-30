@@ -1,6 +1,7 @@
 package com.solosw.codelab.config.server;
 
 import com.alibaba.fastjson.JSONArray;
+import com.solosw.codelab.entity.po.BranchRule;
 import com.solosw.codelab.entity.po.House;
 import com.solosw.codelab.entity.po.HouseRight;
 import com.solosw.codelab.entity.po.Users;
@@ -29,14 +30,25 @@ public class MyPreRecieveHook implements PreReceiveHook {
 
     @Override
     public void onPreReceive(ReceivePack receivePack, Collection<ReceiveCommand> collection) {
-        if(house.getCreatorId().equals(users.getId())) return;
 
+
+        if(house.getCreatorId().equals(users.getId())) return;
+        List<BranchRule> branchRules = gitPersmionHelper.getBranchRule(house.getId());
         List<HouseRight.Right> rightList= JSONArray.parseArray(houseRight.getRights(),HouseRight.Right.class);
         Map<String,String> per=new HashMap<>();
         for(HouseRight.Right right:rightList){
             if(right.getOwner()) return;
             per.put(right.getBranch(),right.getRight());
         }
+
+        for(BranchRule bb:branchRules){
+            if(per.containsKey(bb.getName())){
+                per.replace(bb.getName(),bb.getRule());
+            }else{
+                per.put(bb.getName(),bb.getRule());
+            }
+        }
+
         String cKey="-1";
         String aKey="all";
         Set<ReceiveCommand> saved=new HashSet<>();

@@ -20,6 +20,10 @@ const routes = [
                         path: '/houseSetting', // 子路由
                         component: () => import('@/pages/houseSetting.vue')
                     },
+                    {
+                        path: '/history', // 子路由
+                        component: () => import('@/pages/history.vue')
+                    },
                 ]
             },
 

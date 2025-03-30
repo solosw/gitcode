@@ -38,6 +38,9 @@ public class Origization {
     @Column(name = "member_ids", nullable = true)
     @Convert(converter = LongListConverter.class)
     public List<Long> memberIds;
+
+    @Column(name = "av", nullable = true)
+    private String av;
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();

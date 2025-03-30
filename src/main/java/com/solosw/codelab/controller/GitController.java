@@ -172,5 +172,10 @@ public class GitController extends BaseController {
         return ResponseBo.getFail(null,"参数错误",500);
     }
 
-
+    @PostMapping("/getHistory/{houseId}")
+    public ResponseBo getHistory(@PathVariable Long houseId) throws Exception {
+        House house=houseService.selectById(houseId);
+        if(house==null) return ResponseBo.getFail("失败");
+        return ResponseBo.getSuccess(GitServerUtil.getAllCommit(GitoliteUtil.getRepositoryPath(house.getPath())));
+    }
 }

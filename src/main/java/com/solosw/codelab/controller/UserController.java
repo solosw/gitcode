@@ -9,6 +9,7 @@ import com.solosw.codelab.service.OrigizationService;
 import com.solosw.codelab.service.UserInfoService;
 import com.solosw.codelab.service.UsersService;
 import com.solosw.codelab.utils.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.h2.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +43,13 @@ public class UserController extends BaseController {
         return ResponseBo.getSuccess(map);
     }
     @PostMapping("/createOrganization")
-    public ResponseBo createOrganization(@RequestBody Map<String,String> userInfos){
+    public ResponseBo createOrganization(@RequestBody Map<String,String> userInfos, HttpServletRequest request){
         String name=userInfos.get("name");
         String description=userInfos.get("description");
-        Long createId= Long.valueOf(userInfos.get("userId"));
+        String url=userInfos.get("avatarUrl");
+        Long createId= getCurrentUser(request).getId();
         Origization origization=new Origization();
-        origization.setName(name).setCreatorId(createId).setDescription(description);
+        origization.setName(name).setCreatorId(createId).setDescription(description).setAv(url);
         try {
            origizationService.insert(origization);
        }catch (Exception e){
@@ -59,10 +61,10 @@ public class UserController extends BaseController {
 
 
     @RequestMapping("/getIdentityList/{userId}")
-    public ResponseBo getIdentityList(@PathVariable Long userId){
-        System.out.println(userId);
+    public ResponseBo getIdentityList(@PathVariable Long userId,HttpServletRequest request){
+
         try {
-            return ResponseBo.getSuccess(origizationService.getOrigizationListByUserId(userId));
+            return ResponseBo.getSuccess(origizationService.getOrigizationListByUserId(getCurrentUser(request).getId()));
         }catch (Exception e){
             log.error(e.toString());
             return ResponseBo.getFail(null,"组织查询失败",500);
@@ -71,14 +73,17 @@ public class UserController extends BaseController {
     }
 
     @PostMapping("/changeInfo")
-    public ResponseBo changeInfo(@RequestBody Map<String,String> info){
-        Long id= Long.valueOf(info.get("id"));
+    public ResponseBo changeInfo(@RequestBody Map<String,String> info,HttpServletRequest request){
+        Long id= getCurrentUser(request).getId();
         String email=info.get("email");
         String password=info.get("password");
+        String url=info.get("url");
+
         if (StringUtils.isNullOrEmpty(email)||StringUtils.isNullOrEmpty(password))
             return ResponseBo.getFail(null,"缺少必填项",500);
         Users user=usersService.selectById(id);
         if(user==null) return ResponseBo.getFail(null,"用户不存在",500);
+        if(!StringUtils.isNullOrEmpty(url)) user.setAv(url);
         user.setEmail(email);
         user.setPassword(password);
         usersService.updateById(user);
@@ -86,8 +91,9 @@ public class UserController extends BaseController {
     }
 
     @PostMapping("/changeRealInfo")
-    public ResponseBo changeRealInfo(@RequestBody UserInfo info){
-        UserInfo currentInf0=userInfoService.getUserInfoByUserIdOrId(info.getUserId(),0);
+    public ResponseBo changeRealInfo(@RequestBody UserInfo info,HttpServletRequest httpServletRequest){
+
+        UserInfo currentInf0=userInfoService.getUserInfoByUserIdOrId(getCurrentUser(httpServletRequest).getId(),0);
         if(currentInf0==null){
             userInfoService.insert(info);
         }else {
@@ -96,13 +102,16 @@ public class UserController extends BaseController {
         return ResponseBo.getSuccess(null);
     }
     @PostMapping("/getRealInfo/{userId}")
-    public ResponseBo getRealInfo(@PathVariable Long userId){
-        UserInfo currentInf0=userInfoService.getUserInfoByUserIdOrId(userId,0);
+    public ResponseBo getRealInfo(@PathVariable Long userId,HttpServletRequest httpServletRequest){
+        UserInfo currentInf0=userInfoService.getUserInfoByUserIdOrId(getCurrentUser(httpServletRequest).getId(),0);
         return ResponseBo.getSuccess(currentInf0==null?new UserInfo():currentInf0);
     }
 
     @PostMapping("/add")
-    public ResponseBo getRealInfo(@RequestBody Users users){
+    public ResponseBo getRealInfo(@RequestBody Users users,HttpServletRequest request){
+        if(!getCurrentUser(request).getRole().equals(0)){
+            return ResponseBo.getFail(null,"权限不足",500);
+        }
         try {
             users.setEmail(users.getName()+"@default.com");
             usersService.insert(users);
@@ -121,9 +130,12 @@ public class UserController extends BaseController {
     }
 
     @PostMapping("/delete")
-    public ResponseBo delete(@RequestBody Users users){
+    public ResponseBo delete(@RequestBody Users users,HttpServletRequest request){
+
+        if(!getCurrentUser(request).getRole().equals(0)) return ResponseBo.getFail(null,"权限不足",500);
         usersService.deleteById(users.getId());
-        //ToDO 删除仓库记录，删除组织用户
+        //ToDO 跟换主人为超级管理员
+
         return ResponseBo.getSuccess(null);
     }
 }

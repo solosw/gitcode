@@ -1,6 +1,7 @@
 package com.solosw.codelab.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.solosw.codelab.annations.PermissionCheck;
 import com.solosw.codelab.controller.base.BaseController;
 import com.solosw.codelab.entity.bo.CodeBo;
 import com.solosw.codelab.entity.bo.ResponseBo;
@@ -111,13 +112,14 @@ public class HouseController extends BaseController {
 
 
     @PostMapping("/changeType")
-    public ResponseBo changeType(@RequestBody Map<String,String> mp){
+    public ResponseBo changeType(@RequestBody Map<String,String> mp,HttpServletRequest request){
 
         Long id= Long.valueOf(mp.get("id"));
         Integer kind= Integer.valueOf(mp.get("kind"));
         String name=mp.get("name");
         String des=mp.get("des");
         House house=houseService.selectById(id);
+        if(!house.getCreatorId().equals(getCurrentUser(request).getId())) return ResponseBo.getFail("权限不足");
         Integer oriKind=house.getKind();
         house.setKind(kind);
         if(!StringUtils.isNullOrEmpty(name)){

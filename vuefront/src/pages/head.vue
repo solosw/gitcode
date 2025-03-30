@@ -2,7 +2,8 @@
 export default {
   data() {
     return {
-      searchContent:""
+      searchContent:"",
+      user:JSON.parse(localStorage.getItem("user")).user,
     }
   },
 
@@ -47,7 +48,7 @@ export default {
     </div>
     <div class="head-img-four">
       <a href="/info">
-        <img class="head-img-four-touxiang" src="/images/36727057.jpg">
+        <img class="head-img-four-touxiang" :src="user.av">
 
       </a>
 

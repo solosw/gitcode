@@ -101,7 +101,7 @@ export default {
     <aside class="sidebar">
 
       <div class="profile-card">
-        <img :src="'/images/36727057.jpg'" class="user-avatar">
+        <img :src="user.av" class="user-avatar">
         <div class="profile-info">
           <el-select
               v-model="userType"
@@ -114,7 +114,6 @@ export default {
                 class="profile-option"
             >
               <div class="option-content">
-                <img :src="user.avatar" class="option-avatar">
                 <span>{{ user.name }}</span>
               </div>
             </el-option>
@@ -125,7 +124,7 @@ export default {
                 class="profile-option"
             >
               <div class="option-content">
-                <img :src="item.avatar" class="option-avatar">
+
                 <span>{{ item.name }}</span>
               </div>
             </el-option>

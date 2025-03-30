@@ -1,13 +1,7 @@
 package com.solosw.codelab.config.server;
 
-import com.solosw.codelab.entity.po.House;
-import com.solosw.codelab.entity.po.HouseRight;
-import com.solosw.codelab.entity.po.PublicKey;
-import com.solosw.codelab.entity.po.Users;
-import com.solosw.codelab.service.HouseRightService;
-import com.solosw.codelab.service.HouseService;
-import com.solosw.codelab.service.PublicKeyService;
-import com.solosw.codelab.service.UsersService;
+import com.solosw.codelab.entity.po.*;
+import com.solosw.codelab.service.*;
 import org.h2.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,7 +16,8 @@ public class GitPersmionHelper {
     PublicKeyService publicKeyService;
     @Autowired
     HouseRightService houseRightService;
-
+    @Autowired
+    BranchRuleService branchRuleService;
     @Autowired
     HouseService houseService;
     public Users getUserByName(String name){
@@ -44,5 +39,9 @@ public class GitPersmionHelper {
 
     public House getHouse(Long id){
         return houseService.selectById(id);
+    }
+
+    public List<BranchRule> getBranchRule(long houseID){
+        return branchRuleService.getRuleByHouseId(houseID);
     }
 }

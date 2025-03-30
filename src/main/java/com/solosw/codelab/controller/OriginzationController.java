@@ -1,5 +1,6 @@
 package com.solosw.codelab.controller;
 
+import com.solosw.codelab.annations.PermissionCheck;
 import com.solosw.codelab.controller.base.BaseController;
 import com.solosw.codelab.entity.bo.OrigationBo;
 import com.solosw.codelab.entity.bo.ResponseBo;
@@ -11,6 +12,7 @@ import com.solosw.codelab.service.HouseRightService;
 import com.solosw.codelab.service.HouseService;
 import com.solosw.codelab.service.OrigizationService;
 import com.solosw.codelab.service.UsersService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +37,9 @@ public class OriginzationController extends BaseController {
     HouseRightService houseRightService;
 
     @PostMapping("/getMyOrifization/{userId}")
-    public ResponseBo getMyOrifization(@PathVariable Long userId){
+    @PermissionCheck(userParam = "userId", houseParam = "")
+    public ResponseBo getMyOrifization(@PathVariable Long userId,HttpServletRequest request){
+
       List<Origization> origizationList= origizationService.getOrigizationListByUserId(userId);
       List<OrigationBo> list=new ArrayList<>();
       for(Origization o: origizationList){
@@ -51,7 +55,8 @@ public class OriginzationController extends BaseController {
     }
 
     @PostMapping("/exit/{userId}/{orzId}")
-    public ResponseBo exit(@PathVariable Long userId,@PathVariable Long orzId){
+    @PermissionCheck(userParam = "userId", houseParam = "")
+    public ResponseBo exit(@PathVariable Long userId,@PathVariable Long orzId,HttpServletRequest request){
         Origization origization= origizationService.selectByIdToRespository(orzId);
         if(origization.getCreatorId().equals(userId)){
            Users users= usersService.getManager();
@@ -91,8 +96,10 @@ public class OriginzationController extends BaseController {
     }
 
     @PostMapping("/addUser/{userName}/{orzId}")
-    public ResponseBo addUser(@PathVariable String userName,@PathVariable Long orzId){
+    public ResponseBo addUser(@PathVariable String userName,@PathVariable Long orzId,HttpServletRequest request){
+        Users currentUserusers=getCurrentUser(request);
         Origization origization= origizationService.selectByIdToRespository(orzId);
+        if(!origization.getCreatorId().equals(currentUserusers.getId())) return ResponseBo.getFail(null,"权限不足",500);
         Users users=usersService.getUserByName(userName);
         if(users==null) return ResponseBo.getFail(null,"用户不存在",500);
         if(origization.getMemberIds().contains(users.getId())){

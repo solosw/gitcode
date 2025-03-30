@@ -35,35 +35,7 @@ public class Test {
 
 
     public static void main(String[] args) throws Exception {
-        // 定义仓库存储根目录
-        File reposRootDir = new File("C:\\Users\\solosw\\Desktop\\CodeLab\\repositories");
 
-        GitServlet gitServlet = new GitServlet();
-        gitServlet.setRepositoryResolver((HttpServletRequest req, String name) -> {
-            // 从请求路径中提取仓库名称（如 /repo1 → "repo1"）
-            String path = req.getPathInfo();  // 如 "/repo1/git-upload-pack"
-            String repoName = path.split("/")[1]; // 解析仓库名称
-
-            // 构建仓库路径（约定仓库目录以 .git 结尾）
-            File repoDir = new File(reposRootDir, repoName + ".git");
-
-            // 检查仓库是否存在
-            if (!repoDir.exists()) {
-                throw new RepositoryNotFoundException("仓库不存在: " + repoName);
-            }
-
-            try {
-                return new FileRepositoryBuilder()
-                        .setGitDir(repoDir)
-                        .build();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        gitServlet.setUploadPackFactory((req, repo) -> new UploadPack(repo));
-        gitServlet.setReceivePackFactory((req, repo) -> new ReceivePack(repo));
-        // 配置 Jetty 服务器
 
     }
 }

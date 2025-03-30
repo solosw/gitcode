@@ -1,6 +1,7 @@
 package com.solosw.codelab.controller;
 
 import com.alibaba.fastjson.JSONArray;
+import com.solosw.codelab.annations.PermissionCheck;
 import com.solosw.codelab.controller.base.BaseController;
 import com.solosw.codelab.entity.bo.ResponseBo;
 import com.solosw.codelab.entity.po.House;
@@ -10,6 +11,7 @@ import com.solosw.codelab.enums.HouseRightEnum;
 import com.solosw.codelab.service.HouseRightService;
 import com.solosw.codelab.service.HouseService;
 import com.solosw.codelab.service.UsersService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.h2.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +34,9 @@ public class HouseRightController extends BaseController {
     @Autowired
     UsersService usersService;
     @PostMapping("/addUser")
-    public ResponseBo addUser(@RequestBody Map<String,String> mp){
+    public ResponseBo addUser(@RequestBody Map<String,String> mp, HttpServletRequest request){
 
+        Users currentUser=getCurrentUser(request);
         String right=mp.get("right");
         String branch=mp.get("branch");
         if(right.equals(HouseRightEnum.CREATE.getPermission())){
@@ -44,6 +47,7 @@ public class HouseRightController extends BaseController {
         Users users=usersService.getUserByName(username);
         if(users==null) return ResponseBo.getFail(null,"用户不存在",500);
         House house=houseService.selectById(houseId);
+        if(!house.getCreatorId().equals(currentUser.getId())) return ResponseBo.getFail(null,"权限不足",500);
         if(house==null) return ResponseBo.getFail(null,"仓库不存在",500);
         HouseRight houseRight=houseRightService.getHouseRightByUserAndHouse(users.getId(),houseId);
         if(houseRight!=null){
@@ -108,8 +112,11 @@ public class HouseRightController extends BaseController {
         return ResponseBo.getSuccess(usersList);
     }
     @PostMapping("/deleteUser/{userId}/{houseId}")
-    public ResponseBo deleteUser(@PathVariable Long houseId,@PathVariable Long userId){
+    public ResponseBo deleteUser(@PathVariable Long houseId,@PathVariable Long userId,HttpServletRequest request){
 
+        Users currentUser=getCurrentUser(request);
+        House h=houseService.selectById(houseId);
+        if(!h.getCreatorId().equals(currentUser.getId())) return ResponseBo.getFail(null,"权限不足",500);
         houseRightService.deleteHouseByHouseIdAndUserId(houseId,userId);
         return ResponseBo.getSuccess(null);
     }
@@ -120,16 +127,20 @@ public class HouseRightController extends BaseController {
         return ResponseBo.getSuccess(houseRights);
     }
     @PostMapping("/changeRight")
-    public ResponseBo changeRight(@RequestBody Map<String,String> mp){
+    public ResponseBo changeRight(@RequestBody Map<String,String> mp,HttpServletRequest request){
 
         Long id= Long.valueOf(mp.get("id"));
         String rights=mp.get("rights");
+        HouseRight right= houseRightService.selectById(id);
+        if(!houseService.selectById(right.getHouseId()).getCreatorId().
+                equals(getCurrentUser(request).getId())) return ResponseBo.getFail(null,"权限不足",500);
         if(StringUtils.isNullOrEmpty(rights)){
             houseRightService.deleteById(id);
             return ResponseBo.getSuccess(null);
         }
-        HouseRight right= houseRightService.selectById(id);
+
         right.setRights(rights);
+
         houseRightService.updateById(right);
         return ResponseBo.getSuccess(null);
     }

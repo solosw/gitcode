@@ -2,6 +2,22 @@
   <div style="width: 1000px">
     <h2>我的组织</h2>
     <el-table :data="organizations" style="width: 1000px" @row-dblclick="handleRowClick" >
+      <el-table-column   width="200">
+        <template #default="sc">
+        <el-avatar
+            :size="80"
+            :src="sc.row.av"
+            v-if="sc.row.av"
+            style="margin-right: 20px"
+        ></el-avatar>
+        <el-avatar
+            :size="80"
+            :icon="UserFilled"
+            v-else
+            style="margin-right: 20px"
+        ></el-avatar>
+        </template>
+      </el-table-column>
       <el-table-column prop="name" label="名称" width="200"></el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="200"></el-table-column>
       <el-table-column prop="description" label="描述"></el-table-column>
@@ -39,8 +55,14 @@
 <script>
 import axios from "axios";
 import {ElMessage} from "element-plus";
+import {UserFilled} from "@element-plus/icons-vue";
 
 export default {
+  computed: {
+    UserFilled() {
+      return UserFilled
+    }
+  },
   data() {
     return {
       addName:'',

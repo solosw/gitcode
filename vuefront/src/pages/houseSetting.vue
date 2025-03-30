@@ -75,15 +75,15 @@
           <div slot="header">
             <span>分支管理</span>
           </div>
-          <el-table :data="branches" style="width: 100%">
+          <el-table :data="branchRule" style="width: 100%">
             <el-table-column  label="分支名称" width="200">
               <template #default="scope">
-                  <div>{{scope.row}}</div>
+                  <div>{{scope.row.name}}</div>
               </template>
             </el-table-column>
             <el-table-column label="操作" width="200">
               <template #default="scope">
-                <el-button size="small" @click="protectBranch(scope.row)">保护分支</el-button>
+                <el-button size="small" @click="protectBranch(scope.row)">{{scope.row.rule!='R'?'保护分支':'解除保护'}}</el-button>
                 <el-button size="small" type="danger" @click="deleteBranch(scope.row)">删除分支</el-button>
               </template>
             </el-table-column>
@@ -222,6 +222,10 @@ export default {
         ElMessage.error(res.data.message)
       }
     })
+
+    axios.post("/branch/getBranchRule/"+id).then((res)=>{
+      if(res.data.status==200) this.branchRule=res.data.data
+    })
   },
   data() {
     return {
@@ -247,7 +251,8 @@ export default {
       collaborators: ['user1', 'user2'],
       newCollaborator: '',
       saving: false,
-      isOwner: true
+      isOwner: true,
+      branchRule:[]
     }
   },
   methods: {
@@ -258,8 +263,18 @@ export default {
         type: "warning",
       })
           .then(() => {
-            this.branches = this.branches.filter((branch) => branch !== branchName);
-            this.$message.success(`已删除`);
+
+            axios.post("/branch/deleteBranch",{
+              houseId:this.setting.houseId,
+              branchName:branchName.name
+            }).then((res)=>{
+              if(res.data.status==200){
+                this.branchRule = this.branchRule.filter((branch) => branch !== branchName);
+                this.$message.success(`已删除`);
+              }
+            })
+
+
             // TODO: 实现删除分支的后端逻辑
           })
           .catch(() => {
@@ -267,19 +282,56 @@ export default {
           });
     },
     protectBranch(branchName) {
-      this.$confirm(`确定要保护分支 "${branchName}" 吗？`, "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "success",
-      })
-          .then(() => {
-            this.branches = this.branches.filter((branch) => branch.name !== branchName);
-            this.$message.success(`成功`);
-            // TODO: 实现删除分支的后端逻辑
-          })
-          .catch(() => {
-            this.$message.info("成功");
-          });
+
+      if(branchName.rule!='R'){
+
+        this.$confirm(`确定要保护分支 "${branchName.name}" 吗？`, "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "success",
+        })
+            .then(() => {
+              axios.post("/branch/add",{
+                houseId:this.setting.houseId,
+                rule:"R",
+                branchName:branchName.name
+              }).then((res)=>{
+                if(res.data.status==200){
+                  branchName.rule='R'
+                  this.$message.success(`成功`);
+                }
+              })
+
+              // TODO: 实现删除分支的后端逻辑
+            })
+            .catch(() => {
+              this.$message.info("成功");
+            });
+
+      }else {
+        this.$confirm(`确定解除保护分支 "${branchName.name}" 吗？`, "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "success",
+        })
+            .then(() => {
+              axios.post("/branch/deleteBranchRule",{
+                houseId:this.setting.houseId,
+                branchName:branchName.name
+              }).then((res)=>{
+                if(res.data.status==200){
+                  branchName.rule='none'
+                  this.$message.success(`成功`);
+                }
+              })
+
+              // TODO: 实现删除分支的后端逻辑
+            })
+            .catch(() => {
+              this.$message.info("成功");
+            });
+      }
+
     },
 
     confirmChange(){

@@ -19,4 +19,8 @@ public class ResponseBo {
     {
         return new ResponseBo().setData(data).setMessage(message).setStatus(status);
     }
+    public static ResponseBo getFail(String message)
+    {
+        return new ResponseBo().setMessage(message).setStatus(500);
+    }
 }

@@ -29,7 +29,7 @@ public class WebmvcConfigurer implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/**") // 拦截所有以 /api 开头的请求
-                .excludePathPatterns("/back/user/login"); // 排除登录接口
+                .excludePathPatterns("/back/user/login","/back/data/**");
     }
 
     @Override
@@ -44,7 +44,7 @@ public class WebmvcConfigurer implements WebMvcConfigurer {
             file.mkdirs();
         }
 
-        registry.addResourceHandler(localFilePath + "/**").addResourceLocations("file:" + localFileDir);
+        registry.addResourceHandler("/back/"+localFilePath + "/**").addResourceLocations("file:" + localFileDir);
         registry.addResourceHandler("/**")
                 .addResourceLocations("classpath:/static/");
     }

@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from "./router/index.js";
-import ElementPlus from 'element-plus'
+import ElementPlus, {ElMessage} from 'element-plus'
 import 'element-plus/dist/index.css'
 import 'dayjs/locale/zh-cn'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
@@ -76,7 +76,7 @@ axios.interceptors.response.use(
         return response;
     },
     function (error) {
-
+        ElMessage.error(error)
         return Promise.reject(error);
     }
 );

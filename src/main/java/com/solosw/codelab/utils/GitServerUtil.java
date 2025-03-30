@@ -19,6 +19,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -27,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 public class GitServerUtil {
@@ -300,6 +302,38 @@ public class GitServerUtil {
         }
         return new ArrayList<>();
     }
+    private static String getContainingBranches(Repository repo, RevCommit commit) throws Exception {
+        return Git.wrap(repo).branchList()
+                .setContains(commit.name())
+                .call().stream()
+                .findFirst()
+                .map(ref -> ref.getName().replace("refs/heads/", ""))
+                .orElse("detached");
+    }
+    public static List<CommitMessage> getAllCommit(String gitDir) throws Exception{
+            Repository repo = Git.open(new File(gitDir)).getRepository();
+            List<CommitMessage> commitMessageList=new ArrayList<>();
+            Iterable<RevCommit> commits = new Git(repo).log().call();
+            for (RevCommit commit : commits) {
+                String shortHash = commit.name();
+                String author = commit.getAuthorIdent().getName();
+                String date = new SimpleDateFormat("yyyy-MM-dd")
+                        .format(commit.getAuthorIdent().getWhen());
+                String message = commit.getShortMessage();
+                List<String> parents=new ArrayList<>();
+                for(RevCommit commit1:commit.getParents()){
+                    parents.add(commit1.getName());
+                }
+
+                // 获取分支信息（需要额外实现）
+                String branch = getContainingBranches(repo, commit);
+                CommitMessage commitMessage=new CommitMessage().setMessage(message).setAuthor(author).setDate(date)
+                                .setHash(shortHash).setBranch(branch).setParents(parents);
+                commitMessageList.add(commitMessage);
+            }
+            return commitMessageList;
+
+    }
 
     public static String catFile(String gitDir,String fileHash){
         try {
@@ -435,6 +469,19 @@ public class GitServerUtil {
             t.start();
         }
     }
+    public static void deleteBranch(String path,String branchName){
+        try {
+            // 打开本地 Git 仓库
+            Git git = Git.open(new File(path));
+            git.branchDelete()
+                    .setBranchNames(branchName)
+                    .setForce(true) // 强制删除（如果分支未完全合并）
+                    .call().wait();
+            git.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     public static void main(String[] args) throws Exception {
      //  System.out.println( getAllBranches("C:\\Users\\solosw\\Desktop\\CodeLab\\test\\test.git"));
       //System.out.println( getAllTags("C:\\Users\\solosw\\Desktop\\CodeLab\\test\\test.git"));
@@ -484,8 +531,16 @@ public class GitServerUtil {
         }
 
     }
-
-
+@Data
+@Accessors(chain = true)
+    public static class CommitMessage{
+        String  hash;
+        String author;
+        String date;
+        List<String>  parents;
+        String message;
+        String branch;
+    }
     @Data
     @NoArgsConstructor
 
