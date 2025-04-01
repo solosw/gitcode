@@ -20,6 +20,13 @@ public class GitPersmionHelper {
     BranchRuleService branchRuleService;
     @Autowired
     HouseService houseService;
+
+    @Autowired
+    PullService pullService;
+
+    public List<Pull> getPullByHouseIdAndUserName(String username,Long houseId){
+        return pullService.getPullByHouseIdAndUserName(username,houseId);
+    }
     public Users getUserByName(String name){
         if(StringUtils.isNullOrEmpty(name)) return null;
         return  usersService.getUserByName(name);

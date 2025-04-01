@@ -24,6 +24,14 @@ const routes = [
                         path: '/history', // 子路由
                         component: () => import('@/pages/history.vue')
                     },
+                    {
+                        path: '/wiki', // 子路由
+                        component: () => import('@/pages/wiki.vue')
+                    },
+                    {
+                        path: '/pull', // 子路由
+                        component: () => import('@/pages/pullr.vue')
+                    },
                 ]
             },
 

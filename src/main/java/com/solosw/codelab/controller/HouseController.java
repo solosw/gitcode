@@ -160,13 +160,15 @@ public class HouseController extends BaseController {
 
         return ResponseBo.getSuccess(houseService.getHouseBySearch(content));
     }
-
-
     @PostMapping("/getHouseById/{id}")
     public ResponseBo getHouseById(@PathVariable Long id){
 
+
+
         return ResponseBo.getSuccess(houseService.selectById(id));
     }
+
+
     @PostMapping("/getBranch/{houseId}")
     public ResponseBo getProjectById(@PathVariable Long houseId){
         House  house=houseService.selectById(houseId);

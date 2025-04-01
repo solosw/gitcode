@@ -1,10 +1,7 @@
 package com.solosw.codelab.config.server;
 
 import com.alibaba.fastjson.JSONArray;
-import com.solosw.codelab.entity.po.BranchRule;
-import com.solosw.codelab.entity.po.House;
-import com.solosw.codelab.entity.po.HouseRight;
-import com.solosw.codelab.entity.po.Users;
+import com.solosw.codelab.entity.po.*;
 import com.solosw.codelab.enums.HouseRightEnum;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.transport.PreReceiveHook;
@@ -34,11 +31,25 @@ public class MyPreRecieveHook implements PreReceiveHook {
 
         if(house.getCreatorId().equals(users.getId())) return;
         List<BranchRule> branchRules = gitPersmionHelper.getBranchRule(house.getId());
-        List<HouseRight.Right> rightList= JSONArray.parseArray(houseRight.getRights(),HouseRight.Right.class);
+        List<HouseRight.Right> rightList=new ArrayList<>();
+        if(houseRight!=null) rightList = JSONArray.parseArray(houseRight.getRights(),HouseRight.Right.class);
         Map<String,String> per=new HashMap<>();
         for(HouseRight.Right right:rightList){
             if(right.getOwner()) return;
             per.put(right.getBranch(),right.getRight());
+        }
+
+        List<Pull> pullList=gitPersmionHelper.getPullByHouseIdAndUserName(users.getName(), house.getId());
+        if(pullList!=null){
+            for(Pull p:pullList){
+                if(p.getState().equals(1)){
+                    if(per.containsKey(p.getBaseBranch())){
+                        per.replace(p.getBaseBranch(),HouseRightEnum.READ_WRITE_FORCE.getPermission());
+                    }else{
+                        per.put(p.getBaseBranch(),HouseRightEnum.READ_WRITE_FORCE.getPermission());
+                    }
+                }
+            }
         }
 
         for(BranchRule bb:branchRules){
