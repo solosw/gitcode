@@ -1,34 +1,23 @@
 package com.solosw.codelab.utils;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import net.sf.jsqlparser.expression.DateTimeLiteralExpression;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
-import org.eclipse.jgit.storage.file.FileBasedConfig;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 
 public class GitServerUtil {
@@ -75,57 +64,44 @@ public class GitServerUtil {
         ObjectId oldHead = repository.resolve(oldHash);
         ObjectId newHead = repository.resolve(newHash);
 
-        // 准备两个树解析器
-        AbstractTreeIterator oldTreeParser = prepareTreeParser(repository, oldHead);
-        AbstractTreeIterator newTreeParser = prepareTreeParser(repository, newHead);
+        if(oldHead!=null&&newHead!=null){
+            AbstractTreeIterator oldTreeParser = prepareTreeParser(repository, oldHead);
+            AbstractTreeIterator newTreeParser = prepareTreeParser(repository, newHead);
 
-        // 使用 DiffFormatter 来格式化输出差异
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try (DiffFormatter diffFormatter = new DiffFormatter(out)) {
-            diffFormatter.setRepository(repository);
 
-            List<DiffEntry> diffs = diffFormatter.scan(oldTreeParser, newTreeParser);
-            String regex = "@@ -(\\d+),(\\d+) \\+(\\d+),(\\d+) @@";
-            Pattern pattern = Pattern.compile(regex);
-            for (DiffEntry diff : diffs) {
-                // 格式化当前差异条目
-                diffFormatter.format(diff);
-                String res = out.toString("UTF-8");
-                out.reset();  // 重置 StringWriter 以便下次使用
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            try (DiffFormatter diffFormatter = new DiffFormatter(out)) {
+                diffFormatter.setRepository(repository);
+                List<DiffEntry> diffs = diffFormatter.scan(oldTreeParser, newTreeParser);
 
-                Matcher matcher = pattern.matcher(res);
-                DiffInfo diffInfo=new DiffInfo(diff.getNewPath(),new ArrayList<>());
+                for (DiffEntry diff : diffs) {
+                    // 格式化当前差异条目
+                    diffFormatter.format(diff);
+                    DiffInfo diffInfo=new DiffInfo().setNewHash(diff.getNewId().name()).
+                            setOldHash(diff.getOldId().name()).setStatus(diff.getChangeType().name()).setFileName(diff.getNewPath());
 
-                boolean matched = false;
-                while (matcher.find()) {  // 使用 while 循环来处理可能的多行匹配
-                    matched = true;
+                    if(diff.getChangeType().equals(DiffEntry.ChangeType.ADD)){
+                        diffInfo.setNewContent(catFile(gitDir,diffInfo.newHash)).setOldContent("");
+                    }else if(diff.getChangeType().equals(DiffEntry.ChangeType.DELETE)){
+                        diffInfo.setNewContent("").setOldContent(catFile(gitDir,diffInfo.oldHash));
+                    }else{
+                        diffInfo.setNewContent(catFile(gitDir,diffInfo.oldHash)).setOldContent(catFile(gitDir,diffInfo.oldHash));
+                    }
 
-                    // 提取旧文件的起始行号和行数
-                    int oldStartLine = Integer.parseInt(matcher.group(1));
-                    int oldLineCount = Integer.parseInt(matcher.group(2));
-
-                    // 提取新文件的起始行号和行数
-                    int newStartLine = Integer.parseInt(matcher.group(3));
-                    int newLineCount = Integer.parseInt(matcher.group(4));
-
-                    DiffInfo.RowInfo rowInfo=new DiffInfo.RowInfo(oldStartLine,oldStartLine+oldLineCount-1,
-                            newStartLine,newStartLine+newLineCount-1);
-                    diffInfo.getRowInfos().add(rowInfo);
-                }
-
-                if (!matched) {
-                    System.out.println("No match found.");
-                }else {
                     diffInfoList.add(diffInfo);
                 }
-                out.reset();
+
+
             }
 
-
+            // 关闭仓库
+            repository.close();
+            out.close();
         }
 
-        // 关闭仓库
-        repository.close();
+
+        // 使用 DiffFormatter 来格式化输出差异
+
         return diffInfoList;
     }
 
@@ -506,13 +482,11 @@ public class GitServerUtil {
     @Accessors(chain = true)
     public static class DiffInfo{
         String fileName;
-        List<RowInfo> rowInfos;
-
-        public DiffInfo(String fileName, List<RowInfo> rowInfos) {
-            this.fileName = fileName;
-            this.rowInfos = rowInfos;
-        }
-
+        String status;
+        String oldHash;
+        String newHash;
+        String oldContent;
+        String newContent;
         @Data
         @NoArgsConstructor
         @Accessors(chain = true)

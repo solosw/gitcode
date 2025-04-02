@@ -115,6 +115,7 @@ export default {
   created() {
     const params = new URLSearchParams(window.location.search);
     var id = params.get('id'); // 假设你要获取名为 'param1' 的参数
+    if(params.size>1) this.lab=''
       axios.post("/house/getHouseById/"+id).then((res)=>{
           if(res.data.status==200) this.house=res.data.data
       })

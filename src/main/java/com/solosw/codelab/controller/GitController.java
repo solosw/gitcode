@@ -178,4 +178,12 @@ public class GitController extends BaseController {
         if(house==null) return ResponseBo.getFail("失败");
         return ResponseBo.getSuccess(GitServerUtil.getAllCommit(GitoliteUtil.getRepositoryPath(house.getPath())));
     }
+
+    @PostMapping("/getDifference/{houseId}/{hash}")
+    public ResponseBo getDifference(@PathVariable Long houseId,@PathVariable String hash) throws Exception {
+        House house=houseService.selectById(houseId);
+        if(house==null) return ResponseBo.getFail("失败");
+        String p=GitoliteUtil.getRepositoryPath(house.getPath());
+        return ResponseBo.getSuccess(GitServerUtil.diffByHash(p,hash,GitServerUtil.getFatherCommitHash(p,hash)));
+    }
 }

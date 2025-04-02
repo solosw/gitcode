@@ -32,6 +32,14 @@ const routes = [
                         path: '/pull', // 子路由
                         component: () => import('@/pages/pullr.vue')
                     },
+                    {
+                        path: '/issues', // 子路由
+                        component: () => import('@/pages/issues.vue')
+                    },
+                    {
+                        path: '/commit', // 子路由
+                        component: () => import('@/pages/commit.vue')
+                    },
                 ]
             },
 

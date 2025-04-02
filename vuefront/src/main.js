@@ -23,6 +23,8 @@ import xml from "highlight.js/lib/languages/xml";
 import html from "highlight.js/lib/languages/vbscript-html";
 import json from "highlight.js/lib/languages/json";
 import yaml from "highlight.js/lib/languages/json";
+import CodeDiff from "v-code-diff"
+
 
 
 
@@ -85,4 +87,5 @@ app.config.globalProperties.$http = axios;
 app.use(router);
 app.use(ElementPlus);
 app.use(hljsVuePlugin)
+app.use(CodeDiff)
 app.mount("#app");

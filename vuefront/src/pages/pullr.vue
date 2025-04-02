@@ -1,7 +1,12 @@
 <template>
   <div class="pr-system">
+
+    <!-- 展开/收起按钮 -->
+    <el-button @click="()=>{this.isFormVisible=!this.isFormVisible}" class="toggle-btn">
+      {{ isFormVisible ? 'hidden' : 'add pull' }}
+    </el-button>
     <!-- 创建PR的表单 -->
-    <div class="create-pr">
+    <div class="create-pr" v-if="isFormVisible">
       <h2>Create New Pull Request</h2>
       <form @submit.prevent="createPR">
         <div class="form-group">
@@ -78,7 +83,7 @@
           <!-- 详细信息 -->
           <div  class="pr-details">
             <div class="pr-description">{{ pr.description }}</div>
-
+            <div class="pr-description" style="font-size: xx-small">{{ pr.createTime }}</div>
             <!-- 评论部分
             <div class="comments">
               <div v-for="comment in pr.comments" :key="comment.id" class="comment">
@@ -127,6 +132,7 @@ export default {
   },
   data() {
     return {
+      isFormVisible:false,
       user:JSON.parse(localStorage.getItem("user")).user,
       houseId:-1,
       branches:[
