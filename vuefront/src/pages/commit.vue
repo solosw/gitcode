@@ -1,22 +1,24 @@
 <template>
 
-    <el-collapse v-if="files.length"  v-loading="loading" >
-      <el-collapse-item :name="idx+''"
+    <el-collapse v-if="files.length"  v-loading="loading" @change="lookContent">
+      <el-collapse-item :name="idx"
           v-for="(file,idx) in files"
           :class="['file-item', file.status]"
+
       >
         <template #title>
           <span class="status-tag">{{ statusMap[file.status] }}</span>
           <span class="file-path">{{ file.fileName }}</span>
         </template>
        <template #default>
-         <div style="width:100%">
+         <div style="width:100%" v-show="file.newContent||file.oldContent">
            <code-diff
                :old-string="file.oldContent"
                :new-string="file.newContent"
                output-format="side-by-side"
-               language="js"
+               :lanauge="getlanague(file.fileName)"
            />
+
          </div>
        </template>
       </el-collapse-item>
@@ -25,16 +27,19 @@
 
 <script>
 import axios from 'axios';
+import {ElMessage} from "element-plus";
 
 export default {
 
   created() {
     const params = new URLSearchParams(window.location.search);
     var id = params.get('id'); // 假设你要获取名为 'param1' 的参数
+    this.houseId=id
     var hash=params.get('commit')
     this.loading=true
     axios.post("/git/getDifference/"+id+"/"+hash).then((res)=>{
       if(res.data.status==200) this.files=res.data.data
+      if(this.files.length==0) ElMessage.info("首次提交不展示修改")
       this.loading=false
     })
   },
@@ -51,16 +56,22 @@ export default {
         DELETE: '删除',
         COPY:'复制',
         RENAME:'重命名'
-      }
+      },
+      houseId:-1,
     };
   },
   methods: {
     getlanague(name){
         var t=name.split(".");
         return t.length==2?t[1]:''
+    },
+
+    lookContent(idx){
+      if(idx){
+
+
+      }
     }
-
-
 
 
   }

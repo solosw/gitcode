@@ -8,13 +8,18 @@ import com.solosw.codelab.entity.po.House;
 import com.solosw.codelab.entity.po.HouseRight;
 import com.solosw.codelab.entity.po.Users;
 import com.solosw.codelab.service.UsersService;
-import org.apache.catalina.connector.Connector;
-import org.apache.tomcat.util.net.SSLHostConfig;
+
+import com.sun.jdi.connect.Connector;
+import io.undertow.Undertow;
+import io.undertow.UndertowOptions;
+import io.undertow.server.HttpHandler;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.http.server.GitServlet;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
@@ -62,20 +67,20 @@ public class GitHttpServletConfig  {
     }
     // 仓库存储根目录（可配置为外部路径）
     private static  String REPOS_ROOT_DIR ;
+
     @Bean
     public ServletWebServerFactory servletContainer() {
 
         try {
-            TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
+            UndertowServletWebServerFactory factory = new UndertowServletWebServerFactory();
 
-            tomcat.addAdditionalTomcatConnectors(createHttpConnector());
-         //   tomcat.addAdditionalTomcatConnectors(createHttpsConnector());
-            return tomcat;
+         createHttpServer(factory);
+            return factory;
         }catch (Exception e){
             throw  new RuntimeException(e);
         }
     }
-
+    /*
     private Connector createHttpConnector() {
 
 
@@ -93,6 +98,34 @@ public class GitHttpServletConfig  {
             throw new RuntimeException(e);
         }
 
+    }
+    */
+
+    public void createHttpServer(UndertowServletWebServerFactory handler) {
+        try {
+            // 读取配置文件
+            File configFile = new File("./config.json");
+            if (!configFile.exists()) {
+                throw new RuntimeException("配置文件不存在");
+            }
+
+            // 解析配置参数
+            ObjectMapper mapper = new ObjectMapper();
+            GitSSHServerConfig.Config config = mapper.readValue(
+                    FileUtils.readFileToByteArray(configFile),
+                    GitSSHServerConfig.Config.class
+            );
+
+            handler.setPort(config.getHttpPort());
+
+            // 可选：定制化配置（线程池、缓冲区等）
+            handler.addBuilderCustomizers(builder -> {
+                builder.setServerOption(UndertowOptions.ENABLE_HTTP2, true);
+            });
+
+        } catch (Exception e) {
+            throw new RuntimeException("服务器初始化失败", e);
+        }
     }
 
     @Bean

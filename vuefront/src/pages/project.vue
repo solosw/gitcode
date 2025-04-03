@@ -62,7 +62,18 @@
 
         <!-- 简介面板 -->
         <el-col :span="8">
-          <el-card shadow="never" header="Project Info">
+          <el-card shadow="never">
+            <template #header>
+              <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  :content="user.name"
+                  placement="top"
+              >
+                <el-avatar :src="user.av"></el-avatar>
+              </el-tooltip>
+
+            </template>
             <div class="description">
               <h3>{{ project.name }}</h3>
               <p class="update-time">Last updated: {{ project.updateTime }}</p>

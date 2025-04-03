@@ -4,7 +4,7 @@ import com.solosw.codelab.annations.PermissionCheck;
 import com.solosw.codelab.controller.base.BaseController;
 import com.solosw.codelab.entity.po.Users;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.catalina.User;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;

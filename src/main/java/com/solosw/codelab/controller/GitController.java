@@ -171,7 +171,19 @@ public class GitController extends BaseController {
        }
         return ResponseBo.getFail(null,"参数错误",500);
     }
+    @PostMapping("/catFileTwo/{houseId}/{newHash}/{oldHash}")
+    public ResponseBo catFileTwo(@PathVariable Long houseId,@PathVariable String newHash,@PathVariable String oldHash){
+        House  house=houseService.selectById(houseId);
+        if(house==null){
+            return ResponseBo.getFail(null,"仓库不存在",500);
+        }
 
+        String realPath=GitoliteUtil.getRepositoryPath( house.getPath());
+        Map<String,String> mp=new HashMap<>();
+        mp.put("newContent",GitServerUtil.catFile(realPath,newHash));
+        mp.put("oldContent",GitServerUtil.catFile(realPath,oldHash));
+        return ResponseBo.getSuccess(mp);
+    }
     @PostMapping("/getHistory/{houseId}")
     public ResponseBo getHistory(@PathVariable Long houseId) throws Exception {
         House house=houseService.selectById(houseId);

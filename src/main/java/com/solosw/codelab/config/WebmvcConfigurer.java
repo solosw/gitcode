@@ -28,7 +28,7 @@ public class WebmvcConfigurer implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
-                .addPathPatterns("/**") // 拦截所有以 /api 开头的请求
+                .addPathPatterns("/back/**") // 拦截所有以 /api 开头的请求
                 .excludePathPatterns("/back/user/login","/back/data/**");
     }
 

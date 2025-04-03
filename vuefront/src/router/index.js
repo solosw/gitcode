@@ -2,6 +2,10 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 const routes = [
     { path: '/init',component: ()=>import("@/pages/Init.vue") },
+    {
+        path: '/login', // 注意这里没有 '/'
+        component: () => import('@/pages/login.vue')
+    },
 
     {
         path: '/head',
@@ -43,10 +47,7 @@ const routes = [
                 ]
             },
 
-            {
-                path: '/login', // 注意这里没有 '/'
-                component: () => import('@/pages/login.vue')
-            },
+
             {
                 path: '/index', // 同样，这里没有 '/'
                 component: () => import('@/pages/index.vue')
